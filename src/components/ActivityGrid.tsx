@@ -2,6 +2,7 @@ import { ActivityCard } from "./ActivityCard";
 
 const activities = [
   {
+    id: "1",
     image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&h=250&fit=crop",
     category: "Environmental",
     categoryColor: "bg-success text-success-foreground",
@@ -12,6 +13,7 @@ const activities = [
     description: "Join us for a community tree plantation drive to help restore the natural ecosystem and create a greener future for our city."
   },
   {
+    id: "2",
     image: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=250&fit=crop",
     category: "Education",
     categoryColor: "bg-primary text-primary-foreground",
@@ -22,6 +24,7 @@ const activities = [
     description: "Help underprivileged children learn basic computer skills and digital literacy to bridge the technology gap."
   },
   {
+    id: "3",
     image: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=250&fit=crop",
     category: "Healthcare",
     categoryColor: "bg-destructive text-destructive-foreground",
@@ -32,6 +35,7 @@ const activities = [
     description: "Volunteer to assist in organizing free health checkups and awareness programs for underprivileged communities."
   },
   {
+    id: "4",
     image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&h=250&fit=crop",
     category: "Community Development",
     categoryColor: "bg-cta text-cta-foreground",
@@ -42,6 +46,7 @@ const activities = [
     description: "Help set up and organize a community kitchen to provide nutritious meals to those in need."
   },
   {
+    id: "5",
     image: "https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&h=250&fit=crop",
     category: "Environmental",
     categoryColor: "bg-success text-success-foreground",
@@ -52,6 +57,7 @@ const activities = [
     description: "Join our weekend beach cleanup drive to protect marine life and keep our coastlines clean and beautiful."
   },
   {
+    id: "6",
     image: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=400&h=250&fit=crop",
     category: "Education",
     categoryColor: "bg-primary text-primary-foreground",
@@ -72,9 +78,9 @@ export const ActivityGrid = () => {
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {activities.map((activity, index) => (
-            <ActivityCard key={index} {...activity} />
-          ))}
+        {activities.map((activity) => (
+          <ActivityCard key={activity.id} {...activity} />
+        ))}
         </div>
       </div>
     </section>

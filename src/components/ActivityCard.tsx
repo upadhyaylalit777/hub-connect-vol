@@ -1,8 +1,10 @@
 import { Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 interface ActivityCardProps {
+  id: string;
   image: string;
   category: string;
   categoryColor: string;
@@ -14,6 +16,7 @@ interface ActivityCardProps {
 }
 
 export const ActivityCard = ({
+  id,
   image,
   category,
   categoryColor,
@@ -67,9 +70,11 @@ export const ActivityCard = ({
       </CardContent>
       
       <CardFooter className="p-4 pt-0">
-        <Button variant="cta" className="w-full">
-          View Details
-        </Button>
+        <Link to={`/activity/${id}`} className="w-full">
+          <Button variant="cta" className="w-full">
+            View Details
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );

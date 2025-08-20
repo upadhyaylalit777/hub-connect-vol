@@ -1,10 +1,22 @@
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Star } from "lucide-react";
+import { RegistrationModal } from "@/components/RegistrationModal";
+import { Calendar, Clock, MapPin, Star, Check } from "lucide-react";
 
 export default function ActivityDetails() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+
+  const handleRegistration = (message: string) => {
+    // Handle registration logic here
+    console.log("Registration confirmed with message:", message);
+    setIsRegistered(true);
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -60,9 +72,26 @@ export default function ActivityDetails() {
                   <Badge variant="secondary" className="bg-success text-success-foreground">
                     Spots Available
                   </Badge>
-                  <Button variant="cta" size="lg" className="w-full text-lg font-semibold">
-                    Register Now
-                  </Button>
+                  {isRegistered ? (
+                    <Button 
+                      variant="secondary" 
+                      size="lg" 
+                      className="w-full text-lg font-semibold bg-success text-success-foreground hover:bg-success/80" 
+                      disabled
+                    >
+                      <Check className="w-5 h-5 mr-2" />
+                      Registered
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="cta" 
+                      size="lg" 
+                      className="w-full text-lg font-semibold"
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      Register Now
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -159,6 +188,14 @@ export default function ActivityDetails() {
           </div>
         </div>
       </main>
+
+      <RegistrationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleRegistration}
+        activityTitle="Tree Plantation Drive - 20th August"
+        activityDate="August 20, 2025"
+      />
     </div>
   );
 }

@@ -20,9 +20,12 @@ export const Header = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           <nav className="flex items-center space-x-6">
-            <a href="#" className="text-foreground hover:text-primary font-medium transition-colors">
+            <Link to="/" className="text-foreground hover:text-primary font-medium transition-colors">
               Dashboard
-            </a>
+            </Link>
+            <Link to="/ngo-dashboard" className="text-muted-foreground hover:text-primary font-medium transition-colors">
+              NGO Dashboard
+            </Link>
             <a href="#" className="text-muted-foreground hover:text-primary font-medium transition-colors">
               My Registrations
             </a>
@@ -54,13 +57,20 @@ export const Header = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-background border-b border-border">
           <nav className="container mx-auto px-4 py-4 space-y-4">
-            <a 
-              href="#" 
+            <Link 
+              to="/" 
               className="block text-foreground hover:text-primary font-medium transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Dashboard
-            </a>
+            </Link>
+            <Link 
+              to="/ngo-dashboard" 
+              className="block text-muted-foreground hover:text-primary font-medium transition-colors py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              NGO Dashboard
+            </Link>
             <a 
               href="#" 
               className="block text-muted-foreground hover:text-primary font-medium transition-colors py-2"

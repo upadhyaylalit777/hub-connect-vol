@@ -20,6 +20,7 @@ import {
   Trash2,
   Megaphone 
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const NGODashboard = () => {
   // Mock data - in a real app this would come from an API
@@ -75,10 +76,12 @@ const NGODashboard = () => {
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <h1 className="text-3xl font-bold text-foreground">NGO Dashboard</h1>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Create Activity
-            </Button>
+            <Link to="/create-activity">
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                Create Activity
+              </Button>
+            </Link>
           </div>
 
           {/* Statistics Overview */}
@@ -188,10 +191,12 @@ const NGODashboard = () => {
                     Start making a difference by creating your first volunteer activity. 
                     Connect with passionate volunteers in your community.
                   </p>
-                  <Button className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Create Your First Activity
-                  </Button>
+                  <Link to="/create-activity">
+                    <Button className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      Create Your First Activity
+                    </Button>
+                  </Link>
                 </div>
               )}
             </CardContent>

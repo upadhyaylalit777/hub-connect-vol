@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import ActivityDetails from "./pages/ActivityDetails";
 import UserProfile from "./pages/UserProfile";
 import NGODashboard from "./pages/NGODashboard";
+import CreateActivity from "./pages/CreateActivity";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/activity/:id" element={<ActivityDetails />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/ngo-dashboard" element={<NGODashboard />} />
+          <Route path="/create-activity" element={<CreateActivity />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

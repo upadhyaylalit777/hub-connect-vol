@@ -153,9 +153,11 @@ const NGODashboard = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Eye className="h-4 w-4" />
-                                <span className="sr-only">View activity</span>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+                                <Link to={`/manage-registrations/${activity.id}`}>
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">View activity</span>
+                                </Link>
                               </Button>
                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                 <Edit className="h-4 w-4" />

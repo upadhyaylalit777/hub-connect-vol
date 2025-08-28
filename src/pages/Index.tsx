@@ -1,15 +1,18 @@
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { WelcomeBanner } from "@/components/WelcomeBanner";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { ActivityGrid } from "@/components/ActivityGrid";
 
 const Index = () => {
+  const [searchFilters, setSearchFilters] = useState({});
+
   return (
     <div className="min-h-screen bg-background font-['Poppins']">
       <Header />
       <WelcomeBanner />
-      <SearchFilterBar />
-      <ActivityGrid />
+      <SearchFilterBar onFiltersChange={setSearchFilters} />
+      <ActivityGrid searchFilters={searchFilters} />
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,49 +22,226 @@ import {
   Megaphone 
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+
+interface Activity {
+  id: string;
+  title: string;
+  date: string | null;
+  max_volunteers: number | null;
+  status: string;
+  created_at: string;
+}
+
+interface Registration {
+  id: string;
+  activity_id: string;
+  status: string;
+}
 
 const NGODashboard = () => {
-  // Mock data - in a real app this would come from an API
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const stats = {
-    totalActivities: 12,
-    upcomingEvents: 3,
-    totalRegistrations: 145
+    totalActivities: activities.length,
+    upcomingEvents: activities.filter(a => a.date && new Date(a.date) > new Date()).length,
+    totalRegistrations: registrations.filter(r => r.status === 'APPROVED').length
   };
 
-  const activities = [
-    {
-      id: 1,
-      title: "Tree Plantation Drive",
-      date: "Aug 20, 2025",
-      registrations: "15 / 25",
-      status: "Approved",
-      statusColor: "bg-success text-success-foreground"
-    },
-    {
-      id: 2,
-      title: "Computer Literacy Workshop",
-      date: "Aug 22, 2025", 
-      registrations: "8 / 15",
-      status: "Pending",
-      statusColor: "bg-cta text-cta-foreground"
-    },
-    {
-      id: 3,
-      title: "Community Health Checkup",
-      date: "Aug 18, 2025",
-      registrations: "25 / 30",
-      status: "Completed",
-      statusColor: "bg-muted text-muted-foreground"
-    },
-    {
-      id: 4,
-      title: "Beach Cleanup Drive",
-      date: "Aug 25, 2025",
-      registrations: "12 / 20",
-      status: "Approved", 
-      statusColor: "bg-success text-success-foreground"
+  const fetchData = async () => {
+    if (!user) return;
+
+    try {
+      // Fetch user's activities
+      const { data: activitiesData, error: activitiesError } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('author_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (activitiesError) {
+        console.error('Error fetching activities:', activitiesError);
+        toast({
+          title: "Error",
+          description: "Failed to load activities",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setActivities(activitiesData || []);
+
+      // Fetch registrations for user's activities
+      if (activitiesData && activitiesData.length > 0) {
+        const activityIds = activitiesData.map(a => a.id);
+        
+        const { data: registrationsData, error: registrationsError } = await supabase
+          .from('registrations')
+          .select('*')
+          .in('activity_id', activityIds);
+
+        if (registrationsError) {
+          console.error('Error fetching registrations:', registrationsError);
+        } else {
+          setRegistrations(registrationsData || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [user]);
+
+  // Set up realtime subscriptions
+  useEffect(() => {
+    if (!user) return;
+
+    const activitiesChannel = supabase
+      .channel('activities-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'activities',
+          filter: `author_id=eq.${user.id}`
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    const registrationsChannel = supabase
+      .channel('registrations-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'registrations'
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(activitiesChannel);
+      supabase.removeChannel(registrationsChannel);
+    };
+  }, [user]);
+
+  const deleteActivity = async (activityId: string) => {
+    try {
+      const { error } = await supabase
+        .from('activities')
+        .delete()
+        .eq('id', activityId);
+
+      if (error) {
+        console.error('Error deleting activity:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete activity",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Activity deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting activity:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete activity",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'published':
+        return 'bg-success text-success-foreground';
+      case 'draft':
+        return 'bg-cta text-cta-foreground';
+      case 'cancelled':
+        return 'bg-destructive text-destructive-foreground';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const getRegistrationCount = (activityId: string) => {
+    const activityRegistrations = registrations.filter(r => r.activity_id === activityId);
+    const approvedCount = activityRegistrations.filter(r => r.status === 'APPROVED').length;
+    return approvedCount;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background font-['Poppins']">
+        <Header />
+        <main className="pt-20 pb-12">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+              <Skeleton className="h-9 w-64" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-4 w-32" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-16 mb-2" />
+                    <Skeleton className="h-3 w-24" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const hasActivities = activities.length > 0;
 
@@ -144,10 +322,18 @@ const NGODashboard = () => {
                           <TableCell className="font-medium">
                             {activity.title}
                           </TableCell>
-                          <TableCell>{activity.date}</TableCell>
-                          <TableCell>{activity.registrations}</TableCell>
                           <TableCell>
-                            <Badge className={activity.statusColor}>
+                            {activity.date ? new Date(activity.date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            }) : 'TBD'}
+                          </TableCell>
+                          <TableCell>
+                            {getRegistrationCount(activity.id)} / {activity.max_volunteers || '∞'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusBadge(activity.status)}>
                               {activity.status}
                             </Badge>
                           </TableCell>
@@ -167,6 +353,7 @@ const NGODashboard = () => {
                                 variant="ghost" 
                                 size="sm" 
                                 className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                onClick={() => deleteActivity(activity.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                                 <span className="sr-only">Delete activity</span>

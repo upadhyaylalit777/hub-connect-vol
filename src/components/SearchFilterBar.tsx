@@ -46,7 +46,7 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
   const handleSearch = () => {
     const filters = {
       search: search.trim() || undefined,
-      category: category || undefined,
+      category: category && category !== 'all' ? category : undefined,
       location: location.trim() || undefined,
     };
     
@@ -87,7 +87,7 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.name}>
                       {cat.name}

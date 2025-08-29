@@ -10,9 +10,8 @@ export default function ActivityDetails() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
 
-  const handleRegistration = (message: string) => {
+  const handleRegistration = () => {
     // Handle registration logic here
-    console.log("Registration confirmed with message:", message);
     setIsRegistered(true);
     setIsModalOpen(false);
   };
@@ -195,6 +194,7 @@ export default function ActivityDetails() {
         onConfirm={handleRegistration}
         activityTitle="Tree Plantation Drive - 20th August"
         activityDate="August 20, 2025"
+        activityId="dummy-activity-id"
       />
     </div>
   );

@@ -4,7 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { CalendarIcon, Upload, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +36,10 @@ type ActivityFormData = z.infer<typeof activitySchema>;
 const CreateActivity = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const form = useForm<ActivityFormData>({
     resolver: zodResolver(activitySchema),
@@ -63,10 +70,69 @@ const CreateActivity = () => {
     setImagePreview(null);
   };
 
-  const onSubmit = (data: ActivityFormData) => {
-    console.log("Form submitted:", data);
-    console.log("Selected image:", selectedImage);
-    // Handle form submission here
+  const onSubmit = async (data: ActivityFormData) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create an activity",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // First, get or create the category
+      let categoryId = null;
+      
+      const { data: existingCategories, error: categoryError } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', data.category);
+
+      if (categoryError) throw categoryError;
+
+      if (existingCategories && existingCategories.length > 0) {
+        categoryId = existingCategories[0].id;
+      }
+
+      // Create the activity
+      const { data: newActivity, error: activityError } = await supabase
+        .from('activities')
+        .insert({
+          title: data.title,
+          description: data.description,
+          date: data.date.toISOString().split('T')[0],
+          time: data.time,
+          location: data.location,
+          requirements: data.volunteerRequirements || null,
+          author_id: user.id,
+          category_id: categoryId,
+          image_url: imagePreview || null,
+          status: 'PUBLISHED'
+        })
+        .select()
+        .single();
+
+      if (activityError) throw activityError;
+
+      toast({
+        title: "Success!",
+        description: "Your activity has been published successfully",
+      });
+
+      navigate('/ngo-dashboard');
+    } catch (error) {
+      console.error('Error creating activity:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create activity. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const categories = [
@@ -340,11 +406,11 @@ const CreateActivity = () => {
                 </Link>
                 
                 <div className="flex gap-3">
-                  <Button type="button" variant="outline">
+                  <Button type="button" variant="outline" disabled={isSubmitting}>
                     Save as Draft
                   </Button>
-                  <Button type="submit">
-                    Publish Activity
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Publishing..." : "Publish Activity"}
                   </Button>
                 </div>
               </div>

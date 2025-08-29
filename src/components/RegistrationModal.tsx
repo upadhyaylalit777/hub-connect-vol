@@ -9,13 +9,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface RegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (message: string) => void;
+  onConfirm: () => void;
   activityTitle: string;
   activityDate: string;
+  activityId: string;
 }
 
 export function RegistrationModal({
@@ -24,12 +28,53 @@ export function RegistrationModal({
   onConfirm,
   activityTitle,
   activityDate,
+  activityId,
 }: RegistrationModalProps) {
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const handleConfirm = () => {
-    onConfirm(message);
-    setMessage("");
+  const handleConfirm = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to register",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .insert({
+          activity_id: activityId,
+          volunteer_id: user.id,
+          status: 'PENDING'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "You have successfully registered for this activity",
+      });
+
+      onConfirm();
+      setMessage("");
+    } catch (error) {
+      console.error('Error registering for activity:', error);
+      toast({
+        title: "Error",
+        description: "Failed to register. You may already be registered for this activity.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -91,6 +136,7 @@ export function RegistrationModal({
             <Button
               variant="outline"
               onClick={handleCancel}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
@@ -98,8 +144,9 @@ export function RegistrationModal({
               variant="cta"
               onClick={handleConfirm}
               className="px-6"
+              disabled={isSubmitting}
             >
-              Complete Registration
+              {isSubmitting ? "Registering..." : "Complete Registration"}
             </Button>
           </div>
         </div>

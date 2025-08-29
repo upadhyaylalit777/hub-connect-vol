@@ -17,6 +17,8 @@ interface Registration {
   registered_at: string;
   activity_id: string;
   volunteer_id: string;
+  completed_by_ngo: boolean;
+  completed_at: string | null;
   activity: {
     title: string;
     date: string;
@@ -50,6 +52,8 @@ const NGORegistrations = () => {
           registered_at,
           activity_id,
           volunteer_id,
+          completed_by_ngo,
+          completed_at,
           activities!inner(
             title,
             date,
@@ -71,6 +75,8 @@ const NGORegistrations = () => {
         registered_at: reg.registered_at,
         activity_id: reg.activity_id,
         volunteer_id: reg.volunteer_id,
+        completed_by_ngo: reg.completed_by_ngo,
+        completed_at: reg.completed_at,
         activity: {
           title: reg.activities.title,
           date: reg.activities.date,
@@ -133,6 +139,32 @@ const NGORegistrations = () => {
       toast({
         title: "Error",
         description: "Failed to update registration",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const markAsCompleted = async (registrationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .update({ 
+          completed_by_ngo: true, 
+          completed_at: new Date().toISOString() 
+        })
+        .eq('id', registrationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Activity marked as completed for volunteer",
+      });
+    } catch (error) {
+      console.error('Error marking as completed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark as completed",
         variant: "destructive",
       });
     }
@@ -219,9 +251,16 @@ const NGORegistrations = () => {
                               Registered on {new Date(registration.registered_at).toLocaleDateString()}
                             </p>
                           </div>
-                          <Badge className={getStatusColor(registration.status)}>
-                            {registration.status}
-                          </Badge>
+                          <div className="flex gap-2">
+                            <Badge className={getStatusColor(registration.status)}>
+                              {registration.status}
+                            </Badge>
+                            {registration.completed_by_ngo && (
+                              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                                COMPLETED
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         
                         <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -238,24 +277,34 @@ const NGORegistrations = () => {
                         </div>
                       </div>
                       
-                      {registration.status === 'PENDING' && (
-                        <div className="flex gap-2 ml-4">
+                      <div className="flex gap-2 ml-4">
+                        {registration.status === 'PENDING' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateRegistrationStatus(registration.id, 'CONFIRMED')}
+                            >
+                              Confirm
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => updateRegistrationStatus(registration.id, 'CANCELLED')}
+                            >
+                              Decline
+                            </Button>
+                          </>
+                        )}
+                        {registration.status === 'CONFIRMED' && !registration.completed_by_ngo && (
                           <Button
                             size="sm"
-                            variant="outline"
-                            onClick={() => updateRegistrationStatus(registration.id, 'CONFIRMED')}
+                            onClick={() => markAsCompleted(registration.id)}
                           >
-                            Confirm
+                            Mark Complete
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => updateRegistrationStatus(registration.id, 'CANCELLED')}
-                          >
-                            Decline
-                          </Button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

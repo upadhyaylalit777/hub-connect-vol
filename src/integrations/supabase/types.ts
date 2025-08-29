@@ -128,6 +128,8 @@ export type Database = {
       registrations: {
         Row: {
           activity_id: string
+          completed_at: string | null
+          completed_by_ngo: boolean | null
           id: string
           registered_at: string | null
           status: Database["public"]["Enums"]["registration_status"] | null
@@ -135,6 +137,8 @@ export type Database = {
         }
         Insert: {
           activity_id: string
+          completed_at?: string | null
+          completed_by_ngo?: boolean | null
           id?: string
           registered_at?: string | null
           status?: Database["public"]["Enums"]["registration_status"] | null
@@ -142,6 +146,8 @@ export type Database = {
         }
         Update: {
           activity_id?: string
+          completed_at?: string | null
+          completed_by_ngo?: boolean | null
           id?: string
           registered_at?: string | null
           status?: Database["public"]["Enums"]["registration_status"] | null
@@ -167,6 +173,8 @@ export type Database = {
       reviews: {
         Row: {
           activity_id: string
+          approved_at: string | null
+          approved_by_ngo: boolean | null
           comment: string | null
           created_at: string | null
           id: string
@@ -175,6 +183,8 @@ export type Database = {
         }
         Insert: {
           activity_id: string
+          approved_at?: string | null
+          approved_by_ngo?: boolean | null
           comment?: string | null
           created_at?: string | null
           id?: string
@@ -183,6 +193,8 @@ export type Database = {
         }
         Update: {
           activity_id?: string
+          approved_at?: string | null
+          approved_by_ngo?: boolean | null
           comment?: string | null
           created_at?: string | null
           id?: string

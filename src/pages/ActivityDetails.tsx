@@ -224,9 +224,12 @@ export default function ActivityDetails() {
               {/* Hero Image */}
               <div className="aspect-[16/10] rounded-lg overflow-hidden">
                 <img
-                  src={activity.image_url || "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=500&fit=crop"}
+                  src={activity.image_url || "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=250&fit=crop"}
                   alt={activity.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=250&fit=crop";
+                  }}
                 />
               </div>
 
@@ -326,10 +329,16 @@ export default function ActivityDetails() {
               {/* Location on Map */}
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4">Find Us Here</h2>
-                <div className="aspect-[16/10] bg-muted rounded-lg flex items-center justify-center border border-border">
+                <div 
+                  className="aspect-[16/10] bg-muted rounded-lg flex items-center justify-center border border-border cursor-pointer hover:bg-muted/80 transition-colors"
+                  onClick={() => {
+                    const encodedLocation = encodeURIComponent(activity.location);
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedLocation}`, '_blank');
+                  }}
+                >
                   <div className="text-center text-muted-foreground">
                     <MapPin className="w-12 h-12 mx-auto mb-2" />
-                    <p className="font-medium">Location</p>
+                    <p className="font-medium">Click to open in Google Maps</p>
                     <p className="text-sm">{activity.location}</p>
                   </div>
                 </div>

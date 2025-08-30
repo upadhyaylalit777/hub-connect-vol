@@ -31,7 +31,7 @@ export const ActivityCard = ({
       <CardHeader className="p-0 relative">
         <div className="aspect-video bg-muted rounded-t-lg flex items-center justify-center relative">
           <img 
-            src={image} 
+            src={image || "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=250&fit=crop"} 
             alt={title}
             className="w-full h-full object-cover"
             onError={(e) => {

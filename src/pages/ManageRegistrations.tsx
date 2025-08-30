@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,77 +9,172 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Download, Mail, User, Search } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data for demonstration
-const activityData = {
-  id: "1",
-  title: "Lake Cleanup Drive",
-  date: "August 25, 2025",
-  location: "Pashan Lake, Pune",
-  maxVolunteers: 25,
-  confirmedRegistrations: 15
-};
+interface Registration {
+  id: string;
+  status: string;
+  registered_at: string;
+  activity_id: string;
+  volunteer_id: string;
+  completed_by_ngo: boolean;
+  completed_at: string | null;
+  volunteer: {
+    name: string;
+    profiles?: {
+      id: string;
+      email?: string;
+    };
+  };
+}
 
-const mockRegistrations = [
-  {
-    id: "1",
-    volunteerName: "Priya Sharma",
-    email: "priya.sharma@email.com",
-    registrationDate: "2025-01-10",
-    status: "confirmed"
-  },
-  {
-    id: "2",
-    volunteerName: "Arjun Patel",
-    email: "arjun.patel@email.com",
-    registrationDate: "2025-01-12",
-    status: "pending"
-  },
-  {
-    id: "3",
-    volunteerName: "Sneha Kulkarni",
-    email: "sneha.kulkarni@email.com",
-    registrationDate: "2025-01-15",
-    status: "confirmed"
-  },
-  {
-    id: "4",
-    volunteerName: "Rohit Singh",
-    email: "rohit.singh@email.com",
-    registrationDate: "2025-01-18",
-    status: "cancelled"
-  },
-  {
-    id: "5",
-    volunteerName: "Kavya Menon",
-    email: "kavya.menon@email.com",
-    registrationDate: "2025-01-20",
-    status: "pending"
-  }
-];
+interface ActivityData {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  max_volunteers: number;
+}
 
 const ManageRegistrations = () => {
+  const { id: activityId } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [registrations, setRegistrations] = useState(mockRegistrations);
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [activityData, setActivityData] = useState<ActivityData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleStatusChange = (registrationId: string, newStatus: string) => {
-    setRegistrations(prev => 
-      prev.map(reg => 
-        reg.id === registrationId 
-          ? { ...reg, status: newStatus }
-          : reg
+  useEffect(() => {
+    if (activityId && user) {
+      fetchActivityData();
+      fetchRegistrations();
+      subscribeToChanges();
+    }
+  }, [activityId, user]);
+
+  const fetchActivityData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('activities')
+        .select('id, title, date, time, location, max_volunteers')
+        .eq('id', activityId)
+        .eq('author_id', user!.id)
+        .single();
+
+      if (error) throw error;
+      setActivityData(data);
+    } catch (error) {
+      console.error('Error fetching activity:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load activity details",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchRegistrations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('registrations')
+        .select(`
+          id,
+          status,
+          registered_at,
+          activity_id,
+          volunteer_id,
+          completed_by_ngo,
+          completed_at,
+          profiles!registrations_volunteer_id_fkey(
+            name
+          )
+        `)
+        .eq('activity_id', activityId);
+
+      if (error) throw error;
+
+      const formattedData = data?.map(reg => ({
+        id: reg.id,
+        status: reg.status,
+        registered_at: reg.registered_at,
+        activity_id: reg.activity_id,
+        volunteer_id: reg.volunteer_id,
+        completed_by_ngo: reg.completed_by_ngo,
+        completed_at: reg.completed_at,
+        volunteer: {
+          name: reg.profiles?.name || 'Unknown'
+        }
+      })) || [];
+
+      setRegistrations(formattedData);
+    } catch (error) {
+      console.error('Error fetching registrations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load registrations",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const subscribeToChanges = () => {
+    const channel = supabase
+      .channel('registrations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'registrations',
+          filter: `activity_id=eq.${activityId}`
+        },
+        () => {
+          fetchRegistrations();
+        }
       )
-    );
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
+  const handleStatusChange = async (registrationId: string, newStatus: "CONFIRMED" | "PENDING" | "CANCELLED") => {
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .update({ status: newStatus })
+        .eq('id', registrationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Registration ${newStatus.toLowerCase()} successfully`,
+      });
+    } catch (error) {
+      console.error('Error updating registration:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update registration",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "CONFIRMED":
         return <Badge className="bg-success text-success-foreground">Confirmed</Badge>;
-      case "pending":
-        return <Badge className="bg-cta text-cta-foreground">Pending Confirmation</Badge>;
-      case "cancelled":
+      case "PENDING":
+        return <Badge className="bg-cta text-cta-foreground">Pending</Badge>;
+      case "CANCELLED":
         return <Badge variant="secondary">Cancelled</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
@@ -85,17 +182,17 @@ const ManageRegistrations = () => {
   };
 
   const filteredRegistrations = registrations.filter(reg =>
-    reg.volunteerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.email.toLowerCase().includes(searchTerm.toLowerCase())
+    reg.volunteer.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleExportCSV = () => {
+    if (!activityData) return;
+    
     const csvContent = [
-      ["Volunteer Name", "Email Address", "Registration Date", "Status"],
+      ["Volunteer Name", "Registration Date", "Status"],
       ...filteredRegistrations.map(reg => [
-        reg.volunteerName,
-        reg.email,
-        reg.registrationDate,
+        reg.volunteer.name,
+        reg.registered_at,
         reg.status
       ])
     ].map(row => row.join(",")).join("\n");
@@ -108,6 +205,22 @@ const ManageRegistrations = () => {
     a.click();
     window.URL.revokeObjectURL(url);
   };
+
+  if (loading || !activityData) {
+    return (
+      <div className="min-h-screen bg-background font-['Poppins']">
+        <Header />
+        <main className="container mx-auto px-4 py-8 mt-16">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/2"></div>
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const confirmedCount = registrations.filter(r => r.status === 'CONFIRMED').length;
 
   return (
     <div className="min-h-screen bg-background font-['Poppins']">
@@ -134,7 +247,9 @@ const ManageRegistrations = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Date: </span>
-              <span className="text-foreground font-medium">{activityData.date}</span>
+              <span className="text-foreground font-medium">
+                {new Date(activityData.date).toLocaleDateString()} at {activityData.time}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground">Location: </span>
@@ -143,7 +258,7 @@ const ManageRegistrations = () => {
             <div>
               <span className="text-muted-foreground">Registrations: </span>
               <span className="text-foreground font-medium">
-                {activityData.confirmedRegistrations} / {activityData.maxVolunteers} Confirmed
+                {confirmedCount} / {activityData.max_volunteers} Confirmed
               </span>
             </div>
           </div>
@@ -177,7 +292,6 @@ const ManageRegistrations = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Volunteer Name</TableHead>
-                    <TableHead>Email Address</TableHead>
                     <TableHead>Registration Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -186,7 +300,7 @@ const ManageRegistrations = () => {
                 <TableBody>
                   {filteredRegistrations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                         {searchTerm ? "No volunteers found matching your search." : "No registrations yet."}
                       </TableCell>
                     </TableRow>
@@ -194,11 +308,10 @@ const ManageRegistrations = () => {
                     filteredRegistrations.map((registration) => (
                       <TableRow key={registration.id}>
                         <TableCell className="font-medium">
-                          {registration.volunteerName}
+                          {registration.volunteer.name}
                         </TableCell>
-                        <TableCell>{registration.email}</TableCell>
                         <TableCell>
-                          {new Date(registration.registrationDate).toLocaleDateString('en-US', {
+                          {new Date(registration.registered_at).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric'
@@ -207,36 +320,58 @@ const ManageRegistrations = () => {
                         <TableCell>
                           <Select
                             value={registration.status}
-                            onValueChange={(value) => handleStatusChange(registration.id, value)}
+                            onValueChange={(value) => handleStatusChange(registration.id, value as "CONFIRMED" | "PENDING" | "CANCELLED")}
                           >
                             <SelectTrigger className="w-40">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-popover border border-border">
-                              <SelectItem value="pending">Pending Confirmation</SelectItem>
-                              <SelectItem value="confirmed">Confirmed</SelectItem>
-                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                              <SelectItem value="PENDING">Pending</SelectItem>
+                              <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                              <SelectItem value="CANCELLED">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              title="Send Message"
-                            >
-                              <Mail className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              title="View Volunteer Profile"
-                            >
-                              <User className="w-4 h-4" />
-                            </Button>
+                            {registration.status === 'CONFIRMED' && !registration.completed_by_ngo && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={async () => {
+                                  try {
+                                    const { error } = await supabase
+                                      .from('registrations')
+                                      .update({ 
+                                        completed_by_ngo: true, 
+                                        completed_at: new Date().toISOString() 
+                                      })
+                                      .eq('id', registration.id);
+
+                                    if (error) throw error;
+
+                                    toast({
+                                      title: "Success",
+                                      description: "Activity marked as completed for volunteer",
+                                    });
+                                  } catch (error) {
+                                    console.error('Error marking as completed:', error);
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to mark as completed",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                              >
+                                Mark Complete
+                              </Button>
+                            )}
+                            {registration.completed_by_ngo && (
+                              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                                COMPLETED
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

@@ -47,7 +47,7 @@ export default function Auth() {
         if (profile?.role === 'NGO') {
           navigate('/ngo-dashboard');
         } else {
-          navigate('/');
+          navigate('/activities');
         }
       }
     };
@@ -96,7 +96,7 @@ export default function Auth() {
         if (profile.role === 'NGO' || profile.role === 'ADMIN') {
           navigate('/ngo-dashboard');
         } else {
-          navigate('/');
+          navigate('/activities');
         }
       }
     } catch (error: any) {
@@ -116,9 +116,9 @@ export default function Auth() {
       const { data, error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
+          options: {
+            emailRedirectTo: `${window.location.origin}/activities`,
+            data: {
             name: signupData.name,
             role: signupData.role,
           },

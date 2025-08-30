@@ -27,7 +27,7 @@ export function Header() {
   return (
     <header className="bg-gray-100 p-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold text-primary">
+        <Link to="/activities" className="text-xl font-bold text-primary">
           Volunteer Hub
         </Link>
         
@@ -44,6 +44,12 @@ export function Header() {
                   </Link>
                 </Button>
               ) : null}
+              <Button variant="ghost" asChild>
+                <Link to="/profile" className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Profile
+                </Link>
+              </Button>
               <span className="text-sm">Welcome, {profile?.name || user.email}</span>
               <Button onClick={handleSignOut} variant="outline">
                 Logout
@@ -88,6 +94,18 @@ export function Header() {
                       </Link>
                     </Button>
                   ) : null}
+                  
+                  <Button 
+                    variant="ghost" 
+                    asChild 
+                    className="justify-start h-auto py-3"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Link to="/profile" className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Profile
+                    </Link>
+                  </Button>
                   
                   <Button 
                     variant="outline" 

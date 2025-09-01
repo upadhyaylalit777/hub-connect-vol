@@ -33,17 +33,41 @@ export function ReviewForm({ isOpen, onClose, activityId, activityTitle }: Revie
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
+      // Check if user already reviewed this activity
+      const { data: existingReview } = await supabase
         .from('reviews')
-        .insert({
-          activity_id: activityId,
-          reviewer_id: user.id,
-          rating,
-          comment: comment.trim(),
-          approved_by_ngo: false
-        });
+        .select('id')
+        .eq('activity_id', activityId)
+        .eq('reviewer_id', user.id)
+        .single();
 
-      if (error) throw error;
+      if (existingReview) {
+        // Update existing review
+        const { error } = await supabase
+          .from('reviews')
+          .update({
+            rating,
+            comment: comment.trim(),
+            approved_by_ngo: false,
+            created_at: new Date().toISOString()
+          })
+          .eq('id', existingReview.id);
+
+        if (error) throw error;
+      } else {
+        // Create new review
+        const { error } = await supabase
+          .from('reviews')
+          .insert({
+            activity_id: activityId,
+            reviewer_id: user.id,
+            rating,
+            comment: comment.trim(),
+            approved_by_ngo: false
+          });
+
+        if (error) throw error;
+      }
 
       toast({
         title: "Review Submitted",

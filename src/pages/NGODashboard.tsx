@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,11 +51,17 @@ const NGODashboard = () => {
 
   const stats = {
     totalActivities: activities.length,
-    upcomingEvents: activities.filter(a => a.date && new Date(a.date) > new Date()).length,
+    upcomingEvents: activities.filter(a => {
+      if (!a.date) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const activityDate = new Date(a.date);
+      return activityDate >= today;
+    }).length,
     totalRegistrations: registrations.filter(r => r.status === 'APPROVED').length
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -89,9 +95,12 @@ const NGODashboard = () => {
 
         if (registrationsError) {
           console.error('Error fetching registrations:', registrationsError);
+          setRegistrations([]);
         } else {
           setRegistrations(registrationsData || []);
         }
+      } else {
+        setRegistrations([]);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -103,7 +112,7 @@ const NGODashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
   useEffect(() => {
     fetchData();
@@ -114,7 +123,7 @@ const NGODashboard = () => {
     if (!user) return;
 
     const activitiesChannel = supabase
-      .channel('activities-realtime')
+      .channel('ngo-activities-realtime')
       .on(
         'postgres_changes',
         {
@@ -123,14 +132,15 @@ const NGODashboard = () => {
           table: 'activities',
           filter: `author_id=eq.${user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('Activity change:', payload);
           fetchData();
         }
       )
       .subscribe();
 
     const registrationsChannel = supabase
-      .channel('registrations-realtime')
+      .channel('ngo-registrations-realtime')
       .on(
         'postgres_changes',
         {
@@ -138,7 +148,8 @@ const NGODashboard = () => {
           schema: 'public',
           table: 'registrations'
         },
-        () => {
+        (payload) => {
+          console.log('Registration change:', payload);
           fetchData();
         }
       )
@@ -148,7 +159,7 @@ const NGODashboard = () => {
       supabase.removeChannel(activitiesChannel);
       supabase.removeChannel(registrationsChannel);
     };
-  }, [user]);
+  }, [user, fetchData]);
 
   const deleteActivity = async (activityId: string) => {
     try {

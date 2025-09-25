@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { CalendarIcon, Upload, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -37,9 +37,13 @@ const CreateActivity = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditing = !!editId;
 
   const form = useForm<ActivityFormData>({
     resolver: zodResolver(activitySchema),
@@ -52,6 +56,64 @@ const CreateActivity = () => {
       volunteerRequirements: "",
     },
   });
+
+  // Load activity data for editing
+  useEffect(() => {
+    if (isEditing && editId) {
+      const loadActivity = async () => {
+        setIsLoading(true);
+        try {
+          const { data: activity, error } = await supabase
+            .from('activities')
+            .select('*')
+            .eq('id', editId)
+            .eq('author_id', user?.id) // Ensure user owns the activity
+            .single();
+
+          if (error) throw error;
+
+          if (activity) {
+            // Get category name from category_id
+            let categoryName = "";
+            if (activity.category_id) {
+              const { data: categoryData } = await supabase
+                .from('categories')
+                .select('name')
+                .eq('id', activity.category_id)
+                .single();
+              categoryName = categoryData?.name || "";
+            }
+
+            form.reset({
+              title: activity.title,
+              category: categoryName,
+              description: activity.description || "",
+              date: activity.date ? new Date(activity.date) : new Date(),
+              time: activity.time || "",
+              location: activity.location || "",
+              volunteerRequirements: activity.requirements || "",
+            });
+
+            if (activity.image_url) {
+              setImagePreview(activity.image_url);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading activity:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load activity data",
+            variant: "destructive",
+          });
+          navigate('/ngo-dashboard');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadActivity();
+    }
+  }, [isEditing, editId, user?.id, form, navigate, toast]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -97,30 +159,56 @@ const CreateActivity = () => {
         categoryId = existingCategories[0].id;
       }
 
-      // Create the activity
-      const { data: newActivity, error: activityError } = await supabase
-        .from('activities')
-        .insert({
-          title: data.title,
-          description: data.description,
-          date: data.date.toISOString().split('T')[0],
-          time: data.time,
-          location: data.location,
-          requirements: data.volunteerRequirements || null,
-          author_id: user.id,
-          category_id: categoryId,
-          image_url: imagePreview || null,
-          status: 'PUBLISHED'
-        })
-        .select()
-        .single();
+      // Create or update the activity
+      if (isEditing && editId) {
+        // Update existing activity
+        const { error: activityError } = await supabase
+          .from('activities')
+          .update({
+            title: data.title,
+            description: data.description,
+            date: data.date.toISOString().split('T')[0],
+            time: data.time,
+            location: data.location,
+            requirements: data.volunteerRequirements || null,
+            category_id: categoryId,
+            image_url: imagePreview || null,
+          })
+          .eq('id', editId)
+          .eq('author_id', user.id);
 
-      if (activityError) throw activityError;
+        if (activityError) throw activityError;
 
-      toast({
-        title: "Success!",
-        description: "Your activity has been published successfully",
-      });
+        toast({
+          title: "Success!",
+          description: "Your activity has been updated successfully",
+        });
+      } else {
+        // Create new activity
+        const { data: newActivity, error: activityError } = await supabase
+          .from('activities')
+          .insert({
+            title: data.title,
+            description: data.description,
+            date: data.date.toISOString().split('T')[0],
+            time: data.time,
+            location: data.location,
+            requirements: data.volunteerRequirements || null,
+            author_id: user.id,
+            category_id: categoryId,
+            image_url: imagePreview || null,
+            status: 'PUBLISHED'
+          })
+          .select()
+          .single();
+
+        if (activityError) throw activityError;
+
+        toast({
+          title: "Success!",
+          description: "Your activity has been published successfully",
+        });
+      }
 
       navigate('/ngo-dashboard');
     } catch (error) {
@@ -153,6 +241,24 @@ const CreateActivity = () => {
     "18:00", "18:30", "19:00", "19:30", "20:00"
   ];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background font-['Poppins']">
+        <Header />
+        <main className="pt-20 pb-12">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading activity...</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background font-['Poppins']">
       <Header />
@@ -161,9 +267,14 @@ const CreateActivity = () => {
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Page Title */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Create a New Activity</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              {isEditing ? 'Edit Activity' : 'Create a New Activity'}
+            </h1>
             <p className="text-muted-foreground">
-              Fill out the details below to list your volunteering opportunity.
+              {isEditing 
+                ? 'Update the details of your volunteering opportunity.'
+                : 'Fill out the details below to list your volunteering opportunity.'
+              }
             </p>
           </div>
 
@@ -410,7 +521,10 @@ const CreateActivity = () => {
                     Save as Draft
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Publishing..." : "Publish Activity"}
+                    {isSubmitting 
+                      ? (isEditing ? "Updating..." : "Publishing...") 
+                      : (isEditing ? "Update Activity" : "Publish Activity")
+                    }
                   </Button>
                 </div>
               </div>

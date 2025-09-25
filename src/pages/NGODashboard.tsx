@@ -207,8 +207,9 @@ const NGODashboard = () => {
 
   const getRegistrationCount = (activityId: string) => {
     const activityRegistrations = registrations.filter(r => r.activity_id === activityId);
+    const totalCount = activityRegistrations.length;
     const approvedCount = activityRegistrations.filter(r => r.status === 'APPROVED').length;
-    return approvedCount;
+    return { total: totalCount, approved: approvedCount };
   };
 
   if (loading) {
@@ -341,7 +342,10 @@ const NGODashboard = () => {
                             }) : 'TBD'}
                           </TableCell>
                           <TableCell>
-                            {getRegistrationCount(activity.id)} / {activity.max_volunteers || '∞'}
+                            {(() => {
+                              const counts = getRegistrationCount(activity.id);
+                              return `${counts.approved} / ${activity.max_volunteers || '∞'}`;
+                            })()}
                           </TableCell>
                           <TableCell>
                             <Badge className={getStatusBadge(activity.status)}>
@@ -368,9 +372,11 @@ const NGODashboard = () => {
                                   <span className="sr-only">Review approvals</span>
                                 </Link>
                               </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit activity</span>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+                                <Link to={`/create-activity?edit=${activity.id}`}>
+                                  <Edit className="h-4 w-4" />
+                                  <span className="sr-only">Edit activity</span>
+                                </Link>
                               </Button>
                               <Button 
                                 variant="ghost" 

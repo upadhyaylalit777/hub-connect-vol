@@ -89,17 +89,6 @@ export function RegistrationModal({
           <DialogTitle className="text-xl font-bold text-foreground">
             Confirm Your Spot
           </DialogTitle>
-          <DialogClose asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-4 top-4 h-6 w-6"
-              onClick={handleCancel}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </Button>
-          </DialogClose>
         </DialogHeader>
 
         <div className="space-y-6 pt-2">

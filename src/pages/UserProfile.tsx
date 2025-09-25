@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,23 +7,27 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Mail, Phone, Edit, Key, Trash2, CheckCircle, Users, Clock, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const UserProfile = () => {
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [stats, setStats] = useState({
     activitiesJoined: 0,
     activitiesCompleted: 0,
     reviewsWritten: 0
   });
   const [loading, setLoading] = useState(true);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchUserStats();
-    }
-  }, [user]);
-
-  const fetchUserStats = async () => {
+  const fetchUserStats = useCallback(async () => {
     try {
       const [registrationsRes, reviewsRes] = await Promise.all([
         supabase
@@ -48,6 +52,102 @@ const UserProfile = () => {
       console.error('Error fetching user stats:', error);
     } finally {
       setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserStats();
+    }
+  }, [user, fetchUserStats]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const registrationsChannel = supabase
+      .channel('profile-registrations-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'registrations',
+          filter: `volunteer_id=eq.${user.id}`
+        },
+        () => {
+          fetchUserStats();
+        }
+      )
+      .subscribe();
+
+    const reviewsChannel = supabase
+      .channel('profile-reviews-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reviews',
+          filter: `reviewer_id=eq.${user.id}`
+        },
+        () => {
+          fetchUserStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(registrationsChannel);
+      supabase.removeChannel(reviewsChannel);
+    };
+  }, [user, fetchUserStats]);
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords don't match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error", 
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Password updated successfully",
+      });
+
+      setShowPasswordDialog(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast({
+        title: "Error",
+        description: "Failed to change password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -74,20 +174,22 @@ const UserProfile = () => {
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Profile Header Section */}
           <div className="bg-card border border-border rounded-lg p-8 mb-8 shadow-sm">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              <Avatar className="w-24 h-24">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+              <Avatar className="w-28 h-28">
                 <AvatarImage src="" alt={profile.name} />
-                <AvatarFallback className="text-2xl">
+                <AvatarFallback className="text-3xl">
                   {profile.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="flex-1 text-center md:text-left">
-                <h1 className="text-3xl font-bold text-foreground mb-2">{profile.name}</h1>
-                <Badge variant="secondary" className="mb-4">
-                  {profile.role}
-                </Badge>
-                <Button variant="outline" className="gap-2">
+              <div className="flex-1 text-center md:text-left space-y-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground mb-3">{profile.name}</h1>
+                  <Badge variant="secondary" className="text-sm px-3 py-1">
+                    {profile.role}
+                  </Badge>
+                </div>
+                <Button variant="outline" className="gap-2 px-6 py-2">
                   <Edit className="w-4 h-4" />
                   Edit Profile
                 </Button>
@@ -180,7 +282,11 @@ const UserProfile = () => {
                 <CardTitle>Account Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button variant="outline" className="w-full justify-start gap-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start gap-3"
+                  onClick={() => setShowPasswordDialog(true)}
+                >
                   <Key className="w-4 h-4" />
                   Change Password
                 </Button>
@@ -193,6 +299,57 @@ const UserProfile = () => {
           </div>
         </div>
       </main>
+
+      {/* Change Password Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>
+              Enter your new password below. Make sure it's at least 6 characters long.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="confirm-password">Confirm New Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPasswordDialog(false)}
+              disabled={isChangingPassword}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleChangePassword}
+              disabled={isChangingPassword || !newPassword || !confirmPassword}
+            >
+              {isChangingPassword ? "Updating..." : "Update Password"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -340,7 +340,7 @@ const CreateActivity = () => {
                     <Label className="text-sm font-medium">Header Image</Label>
                     <div className="mt-2">
                       {!imagePreview ? (
-                        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                        <div className="relative border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
                           <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                           <p className="text-sm text-muted-foreground mb-2">
                             Click to upload or drag and drop an image

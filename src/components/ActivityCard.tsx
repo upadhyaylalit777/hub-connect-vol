@@ -27,7 +27,7 @@ export const ActivityCard = ({
   description,
 }: ActivityCardProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
       <CardHeader className="p-0 relative">
         <div className="aspect-video bg-muted rounded-t-lg flex items-center justify-center relative">
           <img 
@@ -44,7 +44,7 @@ export const ActivityCard = ({
         </div>
       </CardHeader>
       
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
         <h3 className="text-lg font-semibold text-foreground line-clamp-2">
           {title}
         </h3>
@@ -64,12 +64,12 @@ export const ActivityCard = ({
           Hosted by: {ngo}
         </p>
         
-        <p className="text-sm text-muted-foreground line-clamp-3">
+        <p className="text-sm text-muted-foreground line-clamp-3 flex-1">
           {description}
         </p>
       </CardContent>
       
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-4 pt-0 mt-auto">
         <Link to={`/activity/${id}`} className="w-full">
           <Button variant="cta" className="w-full">
             View Details

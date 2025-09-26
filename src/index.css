@@ -8,49 +8,49 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Premium Gradient Background */
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    /* Clean Bright Background */
+    --background: 0 0% 100%;
+    --foreground: 224 71% 4%;
 
-    /* Glass Card Effects */
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    /* Premium Glass Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
 
     /* Vibrant Purple Primary */
-    --primary: 263 70% 50%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 20% 98%;
 
-    /* Rich Secondary */
-    --secondary: 240 4.8% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    /* Soft Lavender Secondary */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 8.9% 46.1%;
 
-    /* Sophisticated Muted */
-    --muted: 240 5.9% 10%;
-    --muted-foreground: 240 5% 64.9%;
+    /* Light Muted Tones */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 8.9% 46.1%;
 
     /* Electric Accent */
-    --accent: 263 70% 50%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 262 83% 96%;
+    --accent-foreground: 262 83% 58%;
 
-    /* Neon Cyan CTA */
-    --cta: 180 100% 50%;
-    --cta-foreground: 240 10% 3.9%;
+    /* Bright Orange CTA */
+    --cta: 25 95% 53%;
+    --cta-foreground: 0 0% 100%;
 
-    /* Emerald Success */
+    /* Fresh Green Success */
     --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
+    --success-foreground: 0 0% 100%;
 
-    /* Coral Destructive */
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    /* Vibrant Red Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Subtle Borders */
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 263 70% 50%;
+    /* Clean Borders */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262 83% 58%;
 
     --radius: 0.5rem;
 

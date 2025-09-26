@@ -29,16 +29,17 @@ export const ActivityCard = ({
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
       <CardHeader className="p-0 relative">
-        <div className="aspect-video bg-muted rounded-t-lg flex items-center justify-center relative">
+        <div className="aspect-[4/3] bg-muted rounded-t-lg overflow-hidden relative">
           <img 
-            src={image || "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=250&fit=crop"} 
+            src={image || "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop"} 
             alt={title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             onError={(e) => {
-              e.currentTarget.src = "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=250&fit=crop";
+              e.currentTarget.src = "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop";
             }}
           />
-          <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium ${categoryColor}`}>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          <div className={`absolute top-3 left-3 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm bg-white/90 text-foreground shadow-sm ${categoryColor}`}>
             {category}
           </div>
         </div>

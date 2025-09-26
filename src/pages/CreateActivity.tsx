@@ -359,7 +359,7 @@ const CreateActivity = () => {
                       control={form.control}
                       name="date"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col">
+                        <FormItem className="flex flex-col space-y-2">
                           <FormLabel>Date</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
@@ -367,7 +367,7 @@ const CreateActivity = () => {
                                 <Button
                                   variant="outline"
                                   className={cn(
-                                    "w-full pl-3 text-left font-normal",
+                                    "w-full h-10 pl-3 text-left font-normal justify-start",
                                     !field.value && "text-muted-foreground"
                                   )}
                                 >
@@ -400,11 +400,11 @@ const CreateActivity = () => {
                       control={form.control}
                       name="time"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col space-y-2">
                           <FormLabel>Time</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-10">
                                 <SelectValue placeholder="Select time" />
                               </SelectTrigger>
                             </FormControl>
@@ -451,7 +451,10 @@ const CreateActivity = () => {
                     <Label className="text-sm font-medium">Header Image</Label>
                     <div className="mt-2">
                       {!imagePreview ? (
-                        <div className="relative border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                        <div 
+                          className="relative border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                          onClick={() => document.getElementById('image-upload')?.click()}
+                        >
                           <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                           <p className="text-sm text-muted-foreground mb-2">
                             Click to upload or drag and drop an image
@@ -460,10 +463,11 @@ const CreateActivity = () => {
                             PNG, JPG, GIF up to 10MB
                           </p>
                           <input
+                            id="image-upload"
                             type="file"
                             accept="image/*"
                             onChange={handleImageUpload}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            className="hidden"
                           />
                         </div>
                       ) : (

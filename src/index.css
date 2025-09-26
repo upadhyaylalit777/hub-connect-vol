@@ -8,43 +8,49 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 215 25% 27%;
+    /* Modern Professional Background - Clean Off-White */
+    --background: 220 20% 98%;
+    --foreground: 220 15% 15%;
 
+    /* Elevated Card Background */
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
+    --card-foreground: 220 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
+    --popover-foreground: 220 15% 15%;
 
-    /* Calm Blue Primary */
-    --primary: 210 100% 56%;
+    /* Modern Blue Primary - Professional & Trustworthy */
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Light Blue Secondary */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 215 25% 27%;
+    /* Soft Neutral Secondary */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 15% 25%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* Subtle Muted Tones */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 8% 46%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 215 25% 27%;
+    /* Refined Accent */
+    --accent: 217 32% 96%;
+    --accent-foreground: 220 15% 25%;
 
-    /* Vibrant Orange for CTAs */
-    --cta: 25 95% 53%;
+    /* Professional Orange CTA - Modern & Engaging */
+    --cta: 24 95% 54%;
     --cta-foreground: 0 0% 100%;
 
-    /* Encouraging Green */
-    --success: 142 71% 45%;
+    /* Success Green - Fresh & Positive */
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    /* Error Red - Clear but Not Aggressive */
+    --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 40% 90%;
-    --input: 210 40% 90%;
-    --ring: 210 100% 56%;
+    /* Refined Borders & Inputs */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;
 
     --radius: 0.5rem;
 
@@ -66,39 +72,49 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 215 28% 17%;
-    --foreground: 210 20% 92%;
+    /* Dark Mode - Modern Charcoal Background */
+    --background: 222 22% 8%;
+    --foreground: 220 15% 95%;
 
-    --card: 215 28% 17%;
-    --card-foreground: 210 20% 92%;
+    /* Elevated Dark Cards */
+    --card: 222 20% 12%;
+    --card-foreground: 220 15% 95%;
 
-    --popover: 215 28% 17%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 222 20% 12%;
+    --popover-foreground: 220 15% 95%;
 
-    --primary: 210 100% 56%;
+    /* Bright Primary for Dark Mode */
+    --primary: 217 91% 65%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 25% 27%;
-    --secondary-foreground: 210 20% 92%;
+    /* Dark Mode Secondary */
+    --secondary: 222 15% 20%;
+    --secondary-foreground: 220 15% 85%;
 
-    --muted: 215 25% 27%;
-    --muted-foreground: 215 15% 65%;
+    /* Dark Muted Tones */
+    --muted: 222 15% 20%;
+    --muted-foreground: 220 8% 65%;
 
-    --accent: 215 25% 27%;
-    --accent-foreground: 210 20% 92%;
+    /* Dark Accent */
+    --accent: 222 15% 18%;
+    --accent-foreground: 220 15% 85%;
 
-    --cta: 25 95% 53%;
+    /* Vibrant CTA for Dark Mode */
+    --cta: 24 95% 54%;
     --cta-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    /* Success Green Dark Mode */
+    --success: 142 76% 40%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 50%;
+    /* Error Red Dark Mode */
+    --destructive: 0 75% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 25% 27%;
-    --input: 215 25% 27%;
-    --ring: 210 100% 56%;
+    /* Dark Borders & Inputs */
+    --border: 222 15% 20%;
+    --input: 222 15% 18%;
+    --ring: 217 91% 65%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

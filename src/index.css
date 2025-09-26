@@ -8,49 +8,49 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Modern Professional Background - Clean Off-White */
-    --background: 220 20% 98%;
-    --foreground: 220 15% 15%;
+    /* Premium Gradient Background */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
 
-    /* Elevated Card Background */
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 15%;
+    /* Glass Card Effects */
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 15%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Modern Blue Primary - Professional & Trustworthy */
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    /* Vibrant Purple Primary */
+    --primary: 263 70% 50%;
+    --primary-foreground: 0 0% 98%;
 
-    /* Soft Neutral Secondary */
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 15% 25%;
+    /* Rich Secondary */
+    --secondary: 240 4.8% 15.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    /* Subtle Muted Tones */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 8% 46%;
+    /* Sophisticated Muted */
+    --muted: 240 5.9% 10%;
+    --muted-foreground: 240 5% 64.9%;
 
-    /* Refined Accent */
-    --accent: 217 32% 96%;
-    --accent-foreground: 220 15% 25%;
+    /* Electric Accent */
+    --accent: 263 70% 50%;
+    --accent-foreground: 0 0% 98%;
 
-    /* Professional Orange CTA - Modern & Engaging */
-    --cta: 24 95% 54%;
-    --cta-foreground: 0 0% 100%;
+    /* Neon Cyan CTA */
+    --cta: 180 100% 50%;
+    --cta-foreground: 240 10% 3.9%;
 
-    /* Success Green - Fresh & Positive */
+    /* Emerald Success */
     --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
+    --success-foreground: 0 0% 98%;
 
-    /* Error Red - Clear but Not Aggressive */
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
+    /* Coral Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
 
-    /* Refined Borders & Inputs */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 217 91% 60%;
+    /* Subtle Borders */
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 263 70% 50%;
 
     --radius: 0.5rem;
 

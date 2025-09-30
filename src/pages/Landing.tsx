@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Heart, Calendar, CheckCircle } from "lucide-react";
+import { Users, Heart, Calendar, CheckCircle, ArrowRight } from "lucide-react";
+import treePlantingImg from "@/assets/volunteer-tree-planting.jpg";
+import elderlyCareImg from "@/assets/volunteer-elderly-care.jpg";
+import educationImg from "@/assets/volunteer-education.jpg";
+import beachCleanupImg from "@/assets/volunteer-beach-cleanup.jpg";
 
 export const Landing = () => {
   return (
@@ -125,6 +129,111 @@ export const Landing = () => {
                 </p>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Volunteer Activities Showcase */}
+      <section className="py-24 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+              See Volunteers in Action
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Real stories, real impact. Join thousands making a difference every day.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <div className="group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              <div className="aspect-video overflow-hidden">
+                <img 
+                  src={treePlantingImg} 
+                  alt="Volunteers planting trees in community" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-8">
+                <div className="text-white">
+                  <h3 className="text-2xl font-bold mb-2">Environmental Care</h3>
+                  <p className="text-white/90 mb-4">Join tree planting and green initiatives</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-semibold">Learn More</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              <div className="aspect-video overflow-hidden">
+                <img 
+                  src={elderlyCareImg} 
+                  alt="Volunteers helping elderly community members" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-8">
+                <div className="text-white">
+                  <h3 className="text-2xl font-bold mb-2">Community Support</h3>
+                  <p className="text-white/90 mb-4">Help elderly and vulnerable community members</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-semibold">Learn More</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              <div className="aspect-video overflow-hidden">
+                <img 
+                  src={educationImg} 
+                  alt="Volunteers teaching children" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-8">
+                <div className="text-white">
+                  <h3 className="text-2xl font-bold mb-2">Education & Mentoring</h3>
+                  <p className="text-white/90 mb-4">Teach and inspire the next generation</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-semibold">Learn More</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500">
+              <div className="aspect-video overflow-hidden">
+                <img 
+                  src={beachCleanupImg} 
+                  alt="Volunteers cleaning beach and ocean" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-8">
+                <div className="text-white">
+                  <h3 className="text-2xl font-bold mb-2">Environmental Cleanup</h3>
+                  <p className="text-white/90 mb-4">Protect our oceans and natural spaces</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-semibold">Learn More</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <Button size="lg" asChild className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <Link to="/activities">
+                Explore All Opportunities
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

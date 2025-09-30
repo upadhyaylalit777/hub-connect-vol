@@ -1,20 +1,23 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Mail, Phone, Edit, Key, Trash2, CheckCircle, Users, Clock, Star } from "lucide-react";
+import { Mail, Phone, Edit, Key, Trash2, CheckCircle, Users, Clock, Star, Award, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const UserProfile = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     activitiesJoined: 0,
     activitiesCompleted: 0,
@@ -22,10 +25,15 @@ const UserProfile = () => {
   });
   const [loading, setLoading] = useState(true);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const fetchUserStats = useCallback(async () => {
     try {
@@ -102,6 +110,22 @@ const UserProfile = () => {
     };
   }, [user, fetchUserStats]);
 
+  const calculateLevel = (completedActivities: number) => {
+    if (completedActivities >= 50) return 5;
+    if (completedActivities >= 20) return 4;
+    if (completedActivities >= 10) return 3;
+    if (completedActivities >= 5) return 2;
+    return 1;
+  };
+
+  const getNextLevelActivities = (completedActivities: number) => {
+    if (completedActivities >= 50) return 0;
+    if (completedActivities >= 20) return 50 - completedActivities;
+    if (completedActivities >= 10) return 20 - completedActivities;
+    if (completedActivities >= 5) return 10 - completedActivities;
+    return 5 - completedActivities;
+  };
+
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
       toast({
@@ -151,6 +175,93 @@ const UserProfile = () => {
     }
   };
 
+  const handleEditProfile = async () => {
+    if (!editName.trim()) {
+      toast({
+        title: "Error",
+        description: "Name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingProfile(true);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ name: editName.trim() })
+        .eq('id', user!.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Profile updated successfully",
+      });
+
+      setShowEditDialog(false);
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+
+    try {
+      // First delete user's registrations
+      await supabase
+        .from('registrations')
+        .delete()
+        .eq('volunteer_id', user!.id);
+
+      // Delete user's reviews
+      await supabase
+        .from('reviews')
+        .delete()
+        .eq('reviewer_id', user!.id);
+
+      // Delete user's activities if NGO
+      await supabase
+        .from('activities')
+        .delete()
+        .eq('author_id', user!.id);
+
+      // Delete profile
+      await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user!.id);
+
+      toast({
+        title: "Account Data Deleted",
+        description: "Your data has been removed. Signing out...",
+      });
+
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete account data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingAccount(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   if (!user || !profile) {
     return (
       <div className="min-h-screen bg-background font-['Poppins']">
@@ -165,6 +276,8 @@ const UserProfile = () => {
   }
 
   const isNGO = profile.role === "NGO";
+  const userLevel = calculateLevel(stats.activitiesCompleted);
+  const nextLevelActivities = getNextLevelActivities(stats.activitiesCompleted);
 
   return (
     <div className="min-h-screen bg-background font-['Poppins']">
@@ -185,11 +298,36 @@ const UserProfile = () => {
               <div className="flex-1 text-center md:text-left space-y-4">
                 <div>
                   <h1 className="text-3xl font-bold text-foreground mb-3">{profile.name}</h1>
-                  <Badge variant="secondary" className="text-sm px-3 py-1">
-                    {profile.role}
-                  </Badge>
+                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                    <Badge variant="secondary" className="text-sm px-3 py-1">
+                      {profile.role}
+                    </Badge>
+                    {!isNGO && (
+                      <Badge className="text-sm px-3 py-1 gap-1 bg-primary/10 text-primary border-primary/20">
+                        <Award className="w-3 h-3" />
+                        Level {userLevel}
+                      </Badge>
+                    )}
+                  </div>
+                  {!isNGO && nextLevelActivities > 0 && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Complete {nextLevelActivities} more {nextLevelActivities === 1 ? 'activity' : 'activities'} to reach Level {userLevel + 1}
+                    </p>
+                  )}
+                  {!isNGO && userLevel === 5 && (
+                    <p className="text-sm text-success font-medium mt-2">
+                      🎉 Max Level Achieved!
+                    </p>
+                  )}
                 </div>
-                <Button variant="outline" className="gap-2 px-6 py-2">
+                <Button 
+                  variant="outline" 
+                  className="gap-2 px-6 py-2"
+                  onClick={() => {
+                    setEditName(profile.name);
+                    setShowEditDialog(true);
+                  }}
+                >
                   <Edit className="w-4 h-4" />
                   Edit Profile
                 </Button>
@@ -290,7 +428,11 @@ const UserProfile = () => {
                   <Key className="w-4 h-4" />
                   Change Password
                 </Button>
-                <Button variant="outline" className="w-full justify-start gap-3 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start gap-3 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
                   <Trash2 className="w-4 h-4" />
                   Delete Account
                 </Button>
@@ -299,6 +441,47 @@ const UserProfile = () => {
           </div>
         </div>
       </main>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update your profile information below.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Enter your name"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowEditDialog(false)}
+              disabled={isUpdatingProfile}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleEditProfile}
+              disabled={isUpdatingProfile || !editName.trim()}
+            >
+              {isUpdatingProfile ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Change Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -333,7 +516,7 @@ const UserProfile = () => {
             </div>
           </div>
           
-          <div className="flex justify-end gap-3">
+          <DialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setShowPasswordDialog(false)}
@@ -347,9 +530,40 @@ const UserProfile = () => {
             >
               {isChangingPassword ? "Updating..." : "Update Password"}
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Account Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Are you absolutely sure?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your account and remove all your data from our servers, including:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Your profile information</li>
+                <li>Activity registrations</li>
+                <li>Reviews and ratings</li>
+                <li>All associated data</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingAccount}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={isDeletingAccount}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingAccount ? "Deleting..." : "Delete Account"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

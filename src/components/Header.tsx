@@ -25,9 +25,9 @@ export function Header() {
   };
 
   return (
-    <header className="bg-gray-100 p-4 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link to="/activities" className="text-xl font-bold text-primary">
+    <header className="bg-gray-100 shadow-md sticky top-0 z-50">
+      <div className="container mx-auto flex justify-between items-center px-4 py-4 max-w-full overflow-hidden">
+        <Link to="/activities" className="text-lg md:text-xl font-bold text-primary whitespace-nowrap">
           Volunteer Hub
         </Link>
         
@@ -50,7 +50,7 @@ export function Header() {
                   Profile
                 </Link>
               </Button>
-              <span className="text-sm">Welcome, {profile?.name || user.email}</span>
+              <span className="text-sm truncate max-w-[150px]">Welcome, {profile?.name || user.email}</span>
               <Button onClick={handleSignOut} variant="outline">
                 Logout
               </Button>

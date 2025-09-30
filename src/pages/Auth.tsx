@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [activeTab, setActiveTab] = useState("login");
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -34,26 +35,40 @@ export default function Auth() {
 
   // Check if user is already logged in
   useEffect(() => {
+    let mounted = true;
+    
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Get user role and redirect accordingly
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profile?.role === 'NGO') {
-          navigate('/ngo-dashboard');
-        } else {
-          navigate('/activities');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && mounted) {
+          // Get user role and redirect accordingly
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (mounted) {
+            if (profile?.role === 'NGO') {
+              navigate('/ngo-dashboard', { replace: true });
+            } else {
+              navigate('/activities', { replace: true });
+            }
+          }
+        }
+      } finally {
+        if (mounted) {
+          setCheckingSession(false);
         }
       }
     };
     
     checkSession();
-  }, [navigate]);
+    
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,6 +159,14 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

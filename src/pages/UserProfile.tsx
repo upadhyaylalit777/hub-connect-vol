@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -388,27 +388,33 @@ const UserProfile = () => {
                   <p className="text-center text-muted-foreground">Loading...</p>
                 ) : (
                   <div className="grid grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg mb-3 mx-auto">
-                        <Users className="w-6 h-6 text-primary" />
+                    <Link to="/activity-history?type=joined" className="group">
+                      <div className="text-center p-4 rounded-lg hover:bg-secondary transition-colors cursor-pointer">
+                        <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg mb-3 mx-auto group-hover:bg-primary/20 transition-colors">
+                          <Users className="w-6 h-6 text-primary" />
+                        </div>
+                        <p className="text-2xl font-bold text-foreground">{stats.activitiesJoined}</p>
+                        <p className="text-sm text-muted-foreground">Activities Joined</p>
                       </div>
-                      <p className="text-2xl font-bold text-foreground">{stats.activitiesJoined}</p>
-                      <p className="text-sm text-muted-foreground">Activities Joined</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center w-12 h-12 bg-success/10 rounded-lg mb-3 mx-auto">
-                        <Clock className="w-6 h-6 text-success" />
+                    </Link>
+                    <Link to="/activity-history?type=completed" className="group">
+                      <div className="text-center p-4 rounded-lg hover:bg-secondary transition-colors cursor-pointer">
+                        <div className="flex items-center justify-center w-12 h-12 bg-success/10 rounded-lg mb-3 mx-auto group-hover:bg-success/20 transition-colors">
+                          <Clock className="w-6 h-6 text-success" />
+                        </div>
+                        <p className="text-2xl font-bold text-foreground">{stats.activitiesCompleted}</p>
+                        <p className="text-sm text-muted-foreground">Activities Completed</p>
                       </div>
-                      <p className="text-2xl font-bold text-foreground">{stats.activitiesCompleted}</p>
-                      <p className="text-sm text-muted-foreground">Activities Completed</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center w-12 h-12 bg-cta/10 rounded-lg mb-3 mx-auto">
-                        <Star className="w-6 h-6 text-cta" />
+                    </Link>
+                    <Link to="/my-reviews" className="group">
+                      <div className="text-center p-4 rounded-lg hover:bg-secondary transition-colors cursor-pointer">
+                        <div className="flex items-center justify-center w-12 h-12 bg-cta/10 rounded-lg mb-3 mx-auto group-hover:bg-cta/20 transition-colors">
+                          <Star className="w-6 h-6 text-cta" />
+                        </div>
+                        <p className="text-2xl font-bold text-foreground">{stats.reviewsWritten}</p>
+                        <p className="text-sm text-muted-foreground">Reviews Written</p>
                       </div>
-                      <p className="text-2xl font-bold text-foreground">{stats.reviewsWritten}</p>
-                      <p className="text-sm text-muted-foreground">Reviews Written</p>
-                    </div>
+                    </Link>
                   </div>
                 )}
               </CardContent>

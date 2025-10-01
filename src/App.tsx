@@ -15,6 +15,8 @@ import CreateActivity from "./pages/CreateActivity";
 import ManageRegistrations from "./pages/ManageRegistrations";
 import NGORegistrations from "./pages/NGORegistrations";
 import ReviewApproval from "./pages/ReviewApproval";
+import ActivityHistory from "./pages/ActivityHistory";
+import MyReviews from "./pages/MyReviews";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +69,16 @@ const App = () => (
             <Route path="/review-approval" element={
               <ProtectedRoute requiredRole="NGO_OR_ADMIN">
                 <ReviewApproval />
+              </ProtectedRoute>
+            } />
+            <Route path="/activity-history" element={
+              <ProtectedRoute>
+                <ActivityHistory />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-reviews" element={
+              <ProtectedRoute>
+                <MyReviews />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

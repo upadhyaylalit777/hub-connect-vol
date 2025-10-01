@@ -58,7 +58,7 @@ const NGODashboard = () => {
       const activityDate = new Date(a.date);
       return activityDate >= today;
     }).length,
-    totalRegistrations: registrations.filter(r => r.status === 'APPROVED').length
+    totalRegistrations: registrations.length
   };
 
   const fetchData = useCallback(async () => {

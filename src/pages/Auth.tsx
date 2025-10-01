@@ -169,25 +169,25 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-2">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-              <User className="w-6 h-6 text-primary-foreground" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-lg border-border/50">
+        <CardHeader className="text-center space-y-3 pb-8">
+          <div className="flex items-center justify-center mb-2">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-md">
+              <User className="w-8 h-8 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Volunteer Hub</CardTitle>
-          <p className="text-muted-foreground">
-            {activeTab === "login" ? "Welcome Back!" : "Create Your Account"}
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">Volunteer Hub</CardTitle>
+          <p className="text-muted-foreground text-base">
+            {activeTab === "login" ? "Welcome back! Sign in to continue" : "Join our community of volunteers"}
           </p>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 p-1 bg-muted/50">
+              <TabsTrigger value="login" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Sign Up</TabsTrigger>
             </TabsList>
 
             {error && (

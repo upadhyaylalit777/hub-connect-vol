@@ -53,6 +53,13 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
     onFiltersChange?.(filters);
   };
 
+  // Trigger search when all filters are cleared
+  useEffect(() => {
+    if (!search && (!category || category === 'all') && !location) {
+      handleSearch();
+    }
+  }, [search, category, location]);
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();

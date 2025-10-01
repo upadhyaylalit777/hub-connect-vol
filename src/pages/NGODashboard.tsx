@@ -265,9 +265,12 @@ const NGODashboard = () => {
         <div className="container mx-auto px-4">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <h1 className="text-3xl font-bold text-foreground">NGO Dashboard</h1>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">NGO Dashboard</h1>
+              <p className="text-muted-foreground mt-1">Manage your volunteer activities and registrations</p>
+            </div>
             <Link to="/create-activity">
-              <Button className="gap-2">
+              <Button variant="cta" className="gap-2 shadow-sm">
                 <Plus className="w-4 h-4" />
                 Create Activity
               </Button>
@@ -276,46 +279,53 @@ const NGODashboard = () => {
 
           {/* Statistics Overview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
+            <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Activities</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Activities</CardTitle>
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalActivities}</div>
-                <p className="text-xs text-muted-foreground">All time activities</p>
+                <div className="text-3xl font-bold text-foreground">{stats.totalActivities}</div>
+                <p className="text-xs text-muted-foreground mt-1">All time activities created</p>
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Events</CardTitle>
+                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-success" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.upcomingEvents}</div>
-                <p className="text-xs text-muted-foreground">Next 30 days</p>
+                <div className="text-3xl font-bold text-foreground">{stats.upcomingEvents}</div>
+                <p className="text-xs text-muted-foreground mt-1">Scheduled for the future</p>
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Registrations</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Registrations</CardTitle>
+                <div className="w-10 h-10 rounded-lg bg-cta/10 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-cta" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalRegistrations}</div>
-                <p className="text-xs text-muted-foreground">Across all activities</p>
+                <div className="text-3xl font-bold text-foreground">{stats.totalRegistrations}</div>
+                <p className="text-xs text-muted-foreground mt-1">Volunteers signed up</p>
               </CardContent>
             </Card>
           </div>
 
           {/* My Activities Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>My Activities</CardTitle>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="border-b border-border/50 bg-muted/30">
+              <CardTitle className="text-xl">My Activities</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">View and manage all your volunteer activities</p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {hasActivities ? (
                 <div className="overflow-x-auto">
                   <Table>
@@ -352,27 +362,27 @@ const NGODashboard = () => {
                               {activity.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+                           <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary" asChild>
                                 <Link to={`/activity/${activity.id}`}>
                                   <Eye className="h-4 w-4" />
                                   <span className="sr-only">View activity</span>
                                 </Link>
                               </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-cta/10 hover:text-cta" asChild>
                                 <Link to={`/manage-registrations/${activity.id}`}>
                                   <Users className="h-4 w-4" />
                                   <span className="sr-only">Manage registrations</span>
                                 </Link>
                               </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-success/10 hover:text-success" asChild>
                                 <Link to="/review-approval">
                                   <Megaphone className="h-4 w-4" />
                                   <span className="sr-only">Review approvals</span>
                                 </Link>
                               </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted" asChild>
                                 <Link to={`/create-activity?edit=${activity.id}`}>
                                   <Edit className="h-4 w-4" />
                                   <span className="sr-only">Edit activity</span>
@@ -381,7 +391,7 @@ const NGODashboard = () => {
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                 onClick={() => deleteActivity(activity.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -396,21 +406,21 @@ const NGODashboard = () => {
                 </div>
               ) : (
                 // Empty State
-                <div className="text-center py-12">
+                <div className="text-center py-16">
                   <div className="flex justify-center mb-6">
-                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
+                    <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center shadow-sm">
                       <Megaphone className="w-12 h-12 text-primary" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    You haven't created any activities yet
+                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                    No activities yet
                   </h3>
-                  <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                  <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
                     Start making a difference by creating your first volunteer activity. 
-                    Connect with passionate volunteers in your community.
+                    Connect with passionate volunteers in your community and grow your impact.
                   </p>
                   <Link to="/create-activity">
-                    <Button className="gap-2">
+                    <Button variant="cta" className="gap-2 shadow-sm">
                       <Plus className="w-4 h-4" />
                       Create Your First Activity
                     </Button>

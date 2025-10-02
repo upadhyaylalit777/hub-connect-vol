@@ -330,7 +330,7 @@ export default function ActivityDetails() {
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4">Find Us Here</h2>
                 <div 
-                  className="aspect-[16/10] bg-muted rounded-lg flex items-center justify-center border border-border cursor-pointer hover:bg-muted/80 transition-colors"
+                  className="aspect-[16/6] bg-muted rounded-lg flex items-center justify-center border border-border cursor-pointer hover:bg-muted/80 transition-colors"
                   onClick={() => {
                     const encodedLocation = encodeURIComponent(activity.location);
                     window.open(`https://www.google.com/maps/search/?api=1&query=${encodedLocation}`, '_blank');

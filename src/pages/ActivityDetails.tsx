@@ -218,9 +218,9 @@ export default function ActivityDetails() {
       
       <main className="pt-16">
         <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left Column - Key Information & Action */}
-            <div className="space-y-6 lg:sticky lg:top-20">
+            <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
               {/* Hero Image */}
               <div className="aspect-[16/10] rounded-lg overflow-hidden">
                 <img
@@ -309,19 +309,19 @@ export default function ActivityDetails() {
             </div>
 
             {/* Right Column - Detailed Description */}
-            <div className="space-y-8 lg:pt-0" style={{ scrollMarginTop: '5rem' }}>
+            <div className="space-y-8">
               {/* About this Activity */}
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4">About this Activity</h2>
-                <p className="text-muted-foreground leading-relaxed">
+                <div className="min-h-[120px] text-muted-foreground leading-relaxed">
                   {activity.description}
-                </p>
+                </div>
               </section>
 
               {/* Volunteer Requirements */}
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4">Requirements</h2>
-                <div className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                <div className="min-h-[100px] text-muted-foreground leading-relaxed whitespace-pre-line">
                   {activity.requirements || "No specific requirements listed."}
                 </div>
               </section>

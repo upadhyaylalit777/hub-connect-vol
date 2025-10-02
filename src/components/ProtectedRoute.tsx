@@ -33,7 +33,9 @@ export function ProtectedRoute({
 
         if (!hasAccess) {
           // Redirect based on user's actual role
-          if (profile.role === 'NGO' || profile.role === 'ADMIN') {
+          if (profile.role === 'ADMIN') {
+            navigate('/admin-dashboard');
+          } else if (profile.role === 'NGO') {
             navigate('/ngo-dashboard');
           } else {
             navigate('/');

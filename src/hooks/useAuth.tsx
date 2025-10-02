@@ -63,18 +63,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Fetch from profiles table
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
         setProfile(null);
-      } else {
-        setProfile(data);
+        setLoading(false);
+        return;
       }
+
+      // Fetch secure role from user_roles table
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (roleError) {
+        console.error('Error fetching user role:', roleError);
+      }
+
+      // Map app_role to user_role for backward compatibility
+      if (roleData) {
+        const roleMap: Record<string, 'VOLUNTEER' | 'NGO' | 'ADMIN'> = {
+          'volunteer': 'VOLUNTEER',
+          'ngo': 'NGO',
+          'admin': 'ADMIN'
+        };
+        profileData.role = roleMap[roleData.role] || 'VOLUNTEER';
+      }
+
+      setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);

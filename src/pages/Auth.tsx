@@ -108,7 +108,9 @@ export default function Auth() {
         });
 
         // Redirect based on role
-        if (profile.role === 'NGO' || profile.role === 'ADMIN') {
+        if (profile.role === 'ADMIN') {
+          navigate('/admin-dashboard');
+        } else if (profile.role === 'NGO') {
           navigate('/ngo-dashboard');
         } else {
           navigate('/activities');

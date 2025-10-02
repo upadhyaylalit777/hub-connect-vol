@@ -18,6 +18,7 @@ import ReviewApproval from "./pages/ReviewApproval";
 import ActivityHistory from "./pages/ActivityHistory";
 import MyReviews from "./pages/MyReviews";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,11 @@ const App = () => (
             <Route path="/ngo-dashboard" element={
               <ProtectedRoute requiredRole="NGO_OR_ADMIN">
                 <NGODashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin-dashboard" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <AdminDashboard />
               </ProtectedRoute>
             } />
             <Route path="/create-activity" element={

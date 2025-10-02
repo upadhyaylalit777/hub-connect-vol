@@ -309,7 +309,7 @@ export default function ActivityDetails() {
             </div>
 
             {/* Right Column - Detailed Description */}
-            <div className="space-y-8">
+            <div className="space-y-8 lg:pt-0" style={{ scrollMarginTop: '5rem' }}>
               {/* About this Activity */}
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4">About this Activity</h2>

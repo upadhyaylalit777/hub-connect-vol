@@ -220,7 +220,7 @@ export default function ActivityDetails() {
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left Column - Key Information & Action */}
-            <div className="space-y-6">
+            <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
               {/* Hero Image */}
               <div className="aspect-[16/10] rounded-lg overflow-hidden">
                 <img
@@ -313,15 +313,15 @@ export default function ActivityDetails() {
               {/* About this Activity */}
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4">About this Activity</h2>
-                <p className="text-muted-foreground leading-relaxed">
+                <div className="min-h-[120px] text-muted-foreground leading-relaxed">
                   {activity.description}
-                </p>
+                </div>
               </section>
 
               {/* Volunteer Requirements */}
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4">Requirements</h2>
-                <div className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                <div className="min-h-[100px] text-muted-foreground leading-relaxed whitespace-pre-line">
                   {activity.requirements || "No specific requirements listed."}
                 </div>
               </section>
@@ -329,19 +329,23 @@ export default function ActivityDetails() {
               {/* Location on Map */}
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-4">Find Us Here</h2>
-                <div 
-                  className="aspect-[16/10] bg-muted rounded-lg flex items-center justify-center border border-border cursor-pointer hover:bg-muted/80 transition-colors"
-                  onClick={() => {
-                    const encodedLocation = encodeURIComponent(activity.location);
-                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedLocation}`, '_blank');
-                  }}
-                >
-                  <div className="text-center text-muted-foreground">
-                    <MapPin className="w-12 h-12 mx-auto mb-2" />
-                    <p className="font-medium">Click to open in Google Maps</p>
-                    <p className="text-sm">{activity.location}</p>
-                  </div>
-                </div>
+                <Card className="border-border">
+                  <CardContent className="p-6">
+                    <div 
+                      className="h-[140px] bg-muted rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors"
+                      onClick={() => {
+                        const encodedLocation = encodeURIComponent(activity.location);
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodedLocation}`, '_blank');
+                      }}
+                    >
+                      <div className="text-center text-muted-foreground">
+                        <MapPin className="w-10 h-10 mx-auto mb-2" />
+                        <p className="font-medium">Click to open in Google Maps</p>
+                        <p className="text-sm">{activity.location}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </section>
 
               {/* Reviews */}

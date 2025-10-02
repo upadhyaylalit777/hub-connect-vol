@@ -218,9 +218,9 @@ export default function ActivityDetails() {
       
       <main className="pt-16">
         <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             {/* Left Column - Key Information & Action */}
-            <div className="space-y-6">
+            <div className="space-y-6 lg:sticky lg:top-20">
               {/* Hero Image */}
               <div className="aspect-[16/10] rounded-lg overflow-hidden">
                 <img

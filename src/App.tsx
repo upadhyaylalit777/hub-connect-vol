@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import MaintenanceChecker from "./components/MaintenanceChecker";
 import Landing from "./pages/Landing";
 import Activities from "./pages/Activities";
 import Auth from "./pages/Auth";
@@ -29,7 +30,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
+          <MaintenanceChecker>
+            <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/activities" element={
@@ -87,9 +89,10 @@ const App = () => (
                 <MyReviews />
               </ProtectedRoute>
             } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MaintenanceChecker>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

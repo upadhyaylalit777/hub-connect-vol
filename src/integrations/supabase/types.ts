@@ -245,6 +245,33 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          id: string
+          maintenance_message: string | null
+          maintenance_mode: boolean
+          maintenance_until: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          maintenance_message?: string | null
+          maintenance_mode?: boolean
+          maintenance_until?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          maintenance_message?: string | null
+          maintenance_mode?: boolean
+          maintenance_until?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null

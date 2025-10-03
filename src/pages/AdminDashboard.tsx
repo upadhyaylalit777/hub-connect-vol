@@ -7,8 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Activity, FileText, Shield, LogOut } from 'lucide-react';
+import { Users, Activity, FileText, Shield, LogOut, Settings } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface UserData {
   id: string;
@@ -34,6 +38,13 @@ interface SystemStats {
   totalReviews: number;
 }
 
+interface SystemSettings {
+  id: string;
+  maintenance_mode: boolean;
+  maintenance_message: string;
+  maintenance_until: string | null;
+}
+
 export default function AdminDashboard() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
@@ -46,6 +57,9 @@ export default function AdminDashboard() {
     totalReviews: 0
   });
   const [loading, setLoading] = useState(true);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
+  const [maintenanceMessage, setMaintenanceMessage] = useState('');
+  const [maintenanceUntil, setMaintenanceUntil] = useState('');
 
   useEffect(() => {
     if (profile && profile.role !== 'ADMIN') {
@@ -64,7 +78,8 @@ export default function AdminDashboard() {
       await Promise.all([
         fetchUsers(),
         fetchAuditLogs(),
-        fetchStats()
+        fetchStats(),
+        fetchSystemSettings()
       ]);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -134,6 +149,62 @@ export default function AdminDashboard() {
       totalRegistrations: registrationsCount.count || 0,
       totalReviews: reviewsCount.count || 0
     });
+  };
+
+  const fetchSystemSettings = async () => {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Error fetching system settings:', error);
+      return;
+    }
+
+    if (data) {
+      setSystemSettings(data);
+      setMaintenanceMessage(data.maintenance_message || '');
+      setMaintenanceUntil(data.maintenance_until || '');
+    }
+  };
+
+  const handleMaintenanceToggle = async (enabled: boolean) => {
+    if (!systemSettings) return;
+
+    try {
+      const { error } = await supabase
+        .from('system_settings')
+        .update({ 
+          maintenance_mode: enabled,
+          maintenance_message: maintenanceMessage,
+          maintenance_until: maintenanceUntil || null,
+          updated_by: user?.id
+        })
+        .eq('id', systemSettings.id);
+
+      if (error) throw error;
+
+      await logAuditAction('MAINTENANCE_MODE_CHANGE', undefined, { 
+        enabled, 
+        message: maintenanceMessage,
+        until: maintenanceUntil 
+      });
+
+      await fetchSystemSettings();
+
+      toast({
+        title: 'Success',
+        description: `Maintenance mode ${enabled ? 'enabled' : 'disabled'}`
+      });
+    } catch (error) {
+      console.error('Error toggling maintenance mode:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update maintenance mode',
+        variant: 'destructive'
+      });
+    }
   };
 
   const logAuditAction = async (action: string, targetUserId?: string, details?: any) => {
@@ -261,6 +332,7 @@ export default function AdminDashboard() {
           <TabsList>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="logs">Audit Logs</TabsTrigger>
+            <TabsTrigger value="maintenance">Maintenance Mode</TabsTrigger>
             <TabsTrigger value="health">System Health</TabsTrigger>
           </TabsList>
 
@@ -344,6 +416,63 @@ export default function AdminDashboard() {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="maintenance" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Maintenance Mode</CardTitle>
+                <CardDescription>Control site maintenance status and messaging</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                  <div className="space-y-1">
+                    <Label htmlFor="maintenance-toggle" className="text-base font-medium">
+                      Maintenance Mode
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      {systemSettings?.maintenance_mode 
+                        ? 'Site is currently in maintenance mode' 
+                        : 'Site is operational'}
+                    </p>
+                  </div>
+                  <Switch
+                    id="maintenance-toggle"
+                    checked={systemSettings?.maintenance_mode || false}
+                    onCheckedChange={handleMaintenanceToggle}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="maintenance-message">Maintenance Message</Label>
+                  <Textarea
+                    id="maintenance-message"
+                    placeholder="Enter message to display during maintenance..."
+                    value={maintenanceMessage}
+                    onChange={(e) => setMaintenanceMessage(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="maintenance-until">Expected Back Time (Optional)</Label>
+                  <Input
+                    id="maintenance-until"
+                    type="datetime-local"
+                    value={maintenanceUntil}
+                    onChange={(e) => setMaintenanceUntil(e.target.value)}
+                  />
+                </div>
+
+                <Button 
+                  onClick={() => handleMaintenanceToggle(systemSettings?.maintenance_mode || false)}
+                  className="w-full"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Update Maintenance Settings
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

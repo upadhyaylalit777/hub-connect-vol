@@ -49,7 +49,9 @@ export default function Auth() {
             .single();
           
           if (mounted) {
-            if (profile?.role === 'NGO') {
+            if (profile?.role === 'ADMIN') {
+              navigate('/admin-dashboard', { replace: true });
+            } else if (profile?.role === 'NGO') {
               navigate('/ngo-dashboard', { replace: true });
             } else {
               navigate('/activities', { replace: true });

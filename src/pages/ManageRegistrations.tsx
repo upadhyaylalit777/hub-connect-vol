@@ -4,14 +4,26 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download, Mail, User, Search } from "lucide-react";
+import { ArrowLeft, Download, Mail, User, Search, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+
+interface VolunteerDetails {
+  date_of_birth: string;
+  phone: string;
+  address: string;
+  motivation_skills: string;
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
+  government_id_url: string;
+}
 
 interface Registration {
   id: string;
@@ -28,6 +40,7 @@ interface Registration {
       email?: string;
     };
   };
+  volunteer_details?: VolunteerDetails | null;
 }
 
 interface ActivityData {
@@ -47,6 +60,7 @@ const ManageRegistrations = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [activityData, setActivityData] = useState<ActivityData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedVolunteer, setSelectedVolunteer] = useState<Registration | null>(null);
 
   useEffect(() => {
     if (activityId && user) {
@@ -97,20 +111,32 @@ const ManageRegistrations = () => {
 
       if (error) throw error;
 
-      const formattedData = data?.map(reg => ({
-        id: reg.id,
-        status: reg.status,
-        registered_at: reg.registered_at,
-        activity_id: reg.activity_id,
-        volunteer_id: reg.volunteer_id,
-        completed_by_ngo: reg.completed_by_ngo,
-        completed_at: reg.completed_at,
-        volunteer: {
-          name: reg.profiles?.name || 'Unknown'
-        }
-      })) || [];
+      // Fetch volunteer details for each registration
+      const registrationsWithDetails = await Promise.all(
+        (data || []).map(async (reg) => {
+          const { data: volunteerDetails } = await supabase
+            .from('volunteer_details')
+            .select('*')
+            .eq('user_id', reg.volunteer_id)
+            .single();
 
-      setRegistrations(formattedData);
+          return {
+            id: reg.id,
+            status: reg.status,
+            registered_at: reg.registered_at,
+            activity_id: reg.activity_id,
+            volunteer_id: reg.volunteer_id,
+            completed_by_ngo: reg.completed_by_ngo,
+            completed_at: reg.completed_at,
+            volunteer: {
+              name: reg.profiles?.name || 'Unknown'
+            },
+            volunteer_details: volunteerDetails
+          };
+        })
+      );
+
+      setRegistrations(registrationsWithDetails);
     } catch (error) {
       console.error('Error fetching registrations:', error);
       toast({
@@ -294,13 +320,14 @@ const ManageRegistrations = () => {
                     <TableHead>Volunteer Name</TableHead>
                     <TableHead>Registration Date</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Details</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRegistrations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                         {searchTerm ? "No volunteers found matching your search." : "No registrations yet."}
                       </TableCell>
                     </TableRow>
@@ -331,6 +358,17 @@ const ManageRegistrations = () => {
                               <SelectItem value="CANCELLED">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedVolunteer(registration)}
+                            disabled={!registration.volunteer_details}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Details
+                          </Button>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -382,6 +420,88 @@ const ManageRegistrations = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Volunteer Details Modal */}
+        <Dialog open={!!selectedVolunteer} onOpenChange={() => setSelectedVolunteer(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">Volunteer Details - {selectedVolunteer?.volunteer.name}</DialogTitle>
+            </DialogHeader>
+            
+            {selectedVolunteer?.volunteer_details && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm">Date of Birth</Label>
+                    <p className="font-medium">
+                      {new Date(selectedVolunteer.volunteer_details.date_of_birth).toLocaleDateString()}
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm">Phone</Label>
+                    <p className="font-medium">{selectedVolunteer.volunteer_details.phone}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-sm">Address</Label>
+                  <p className="font-medium">{selectedVolunteer.volunteer_details.address}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-sm">Motivation & Skills</Label>
+                  <p className="font-medium whitespace-pre-wrap">{selectedVolunteer.volunteer_details.motivation_skills}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm">Emergency Contact</Label>
+                    <p className="font-medium">{selectedVolunteer.volunteer_details.emergency_contact_name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedVolunteer.volunteer_details.emergency_contact_phone}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-sm">Government ID</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(selectedVolunteer.volunteer_details?.government_id_url, '_blank')}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      View Document
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-border">
+                  <div className="flex gap-4">
+                    <Button
+                      variant="cta"
+                      onClick={() => {
+                        handleStatusChange(selectedVolunteer.id, "CONFIRMED");
+                        setSelectedVolunteer(null);
+                      }}
+                      disabled={selectedVolunteer.status === "CONFIRMED"}
+                    >
+                      Confirm Registration
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        handleStatusChange(selectedVolunteer.id, "CANCELLED");
+                        setSelectedVolunteer(null);
+                      }}
+                      disabled={selectedVolunteer.status === "CANCELLED"}
+                    >
+                      Decline Registration
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

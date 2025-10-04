@@ -10,12 +10,15 @@ import { Mail, Lock, User, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { VolunteerDetailsForm } from "@/components/VolunteerDetailsForm";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [activeTab, setActiveTab] = useState("login");
   const [error, setError] = useState("");
+  const [showVolunteerDetailsForm, setShowVolunteerDetailsForm] = useState(false);
+  const [newVolunteerId, setNewVolunteerId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -147,13 +150,19 @@ export default function Auth() {
       if (error) throw error;
 
       if (data.user) {
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
-        });
+        // If volunteer, show details form
+        if (signupData.role === "VOLUNTEER") {
+          setNewVolunteerId(data.user.id);
+          setShowVolunteerDetailsForm(true);
+        } else {
+          // For NGOs, just show success message
+          toast({
+            title: "Account created!",
+            description: "Please check your email to verify your account.",
+          });
+          setActiveTab("login");
+        }
         
-        // Switch to login tab
-        setActiveTab("login");
         setSignupData({ name: "", email: "", password: "", role: "VOLUNTEER" });
       }
     } catch (error: any) {
@@ -169,6 +178,19 @@ export default function Auth() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  // Show volunteer details form after signup
+  if (showVolunteerDetailsForm && newVolunteerId) {
+    return (
+      <VolunteerDetailsForm 
+        userId={newVolunteerId} 
+        onComplete={() => {
+          setShowVolunteerDetailsForm(false);
+          setNewVolunteerId(null);
+        }}
+      />
     );
   }
 

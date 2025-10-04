@@ -293,6 +293,54 @@ export type Database = {
         }
         Relationships: []
       }
+      volunteer_details: {
+        Row: {
+          address: string
+          background_check_consent: boolean
+          created_at: string | null
+          date_of_birth: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          government_id_url: string
+          id: string
+          motivation_skills: string
+          phone: string
+          policy_consent: boolean
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address: string
+          background_check_consent?: boolean
+          created_at?: string | null
+          date_of_birth: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          government_id_url: string
+          id?: string
+          motivation_skills: string
+          phone: string
+          policy_consent?: boolean
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string
+          background_check_consent?: boolean
+          created_at?: string | null
+          date_of_birth?: string
+          emergency_contact_name?: string
+          emergency_contact_phone?: string
+          government_id_url?: string
+          id?: string
+          motivation_skills?: string
+          phone?: string
+          policy_consent?: boolean
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

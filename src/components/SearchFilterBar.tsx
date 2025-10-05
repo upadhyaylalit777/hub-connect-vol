@@ -3,6 +3,8 @@ import { Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SearchFilterBarProps {
@@ -10,6 +12,7 @@ interface SearchFilterBarProps {
     search?: string;
     category?: string;
     location?: string;
+    verifiedOnly?: boolean;
   }) => void;
 }
 
@@ -22,6 +25,7 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
 
   // Fetch categories from Supabase
@@ -48,6 +52,7 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
       search: search.trim() || undefined,
       category: category && category !== 'all' ? category : undefined,
       location: location.trim() || undefined,
+      verifiedOnly: verifiedOnly || undefined,
     };
     
     onFiltersChange?.(filters);
@@ -55,10 +60,10 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
 
   // Trigger search when all filters are cleared
   useEffect(() => {
-    if (!search && (!category || category === 'all') && !location) {
+    if (!search && (!category || category === 'all') && !location && !verifiedOnly) {
       handleSearch();
     }
-  }, [search, category, location]);
+  }, [search, category, location, verifiedOnly]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -70,7 +75,7 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
     <section className="py-8 bg-background">
       <div className="container mx-auto px-4">
         <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
             {/* Search Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Search</label>
@@ -123,6 +128,21 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
             <Button variant="cta" className="h-10" onClick={handleSearch}>
               Find Activities
             </Button>
+          </div>
+          
+          {/* Verified NGO Filter */}
+          <div className="flex items-center space-x-2 pt-2">
+            <Checkbox
+              id="verified-only"
+              checked={verifiedOnly}
+              onCheckedChange={(checked) => setVerifiedOnly(checked as boolean)}
+            />
+            <Label
+              htmlFor="verified-only"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              Show verified NGOs only
+            </Label>
           </div>
         </div>
       </div>

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { NGOVerificationForm } from "@/components/NGOVerificationForm";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { 
   Table, 
   TableBody, 
@@ -48,6 +50,7 @@ const NGODashboard = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ngoProfile, setNgoProfile] = useState<any>(null);
 
   const stats = {
     totalActivities: activities.length,
@@ -65,6 +68,15 @@ const NGODashboard = () => {
     if (!user) return;
 
     try {
+      // Fetch NGO profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      setNgoProfile(profileData);
+
       // Fetch user's activities
       const { data: activitiesData, error: activitiesError } = await supabase
         .from('activities')
@@ -265,9 +277,12 @@ const NGODashboard = () => {
         <div className="container mx-auto px-4">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">NGO Dashboard</h1>
-              <p className="text-muted-foreground mt-1">Manage your volunteer activities and registrations</p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">NGO Dashboard</h1>
+                <p className="text-muted-foreground mt-1">Manage your volunteer activities and registrations</p>
+              </div>
+              {ngoProfile?.verification_status === 'VERIFIED' && <VerifiedBadge />}
             </div>
             <Link to="/create-activity">
               <Button variant="cta" className="gap-2 shadow-sm">
@@ -276,6 +291,44 @@ const NGODashboard = () => {
               </Button>
             </Link>
           </div>
+
+          {/* Verification Form - Show if not verified */}
+          {ngoProfile?.verification_status !== 'VERIFIED' && (
+            <div className="mb-8">
+              {ngoProfile?.verification_status === 'PENDING' ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Verification Pending</CardTitle>
+                    <CardDescription>
+                      Your verification request is being reviewed by our administrators.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge variant="secondary">Under Review</Badge>
+                  </CardContent>
+                </Card>
+              ) : ngoProfile?.verification_status === 'REJECTED' ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Verification Rejected</CardTitle>
+                    <CardDescription>
+                      Your verification request was rejected. Please contact support or resubmit with correct information.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge variant="destructive">Rejected</Badge>
+                    {ngoProfile?.verification_notes && (
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Note: {ngoProfile.verification_notes}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <NGOVerificationForm />
+              )}
+            </div>
+          )}
 
           {/* Statistics Overview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

@@ -131,24 +131,42 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
+          darpan_id: string | null
           id: string
           name: string
+          pan_url: string | null
+          registration_cert_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
+          verification_notes: string | null
+          verification_status: string | null
+          verified_at: string | null
         }
         Insert: {
           created_at?: string | null
+          darpan_id?: string | null
           id: string
           name: string
+          pan_url?: string | null
+          registration_cert_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
         }
         Update: {
           created_at?: string | null
+          darpan_id?: string | null
           id?: string
           name?: string
+          pan_url?: string | null
+          registration_cert_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }

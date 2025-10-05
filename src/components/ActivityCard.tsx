@@ -2,6 +2,7 @@ import { Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface ActivityCardProps {
   id: string;
@@ -13,6 +14,7 @@ interface ActivityCardProps {
   location: string;
   ngo: string;
   description: string;
+  isVerified?: boolean;
 }
 
 export const ActivityCard = ({
@@ -25,6 +27,7 @@ export const ActivityCard = ({
   location,
   ngo,
   description,
+  isVerified = false,
 }: ActivityCardProps) => {
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
@@ -61,9 +64,12 @@ export const ActivityCard = ({
           </div>
         </div>
         
-        <p className="text-sm font-medium text-foreground">
-          Hosted by: {ngo}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-foreground">
+            Hosted by: {ngo}
+          </p>
+          {isVerified && <VerifiedBadge size="sm" showText={false} />}
+        </div>
         
         <p className="text-sm text-muted-foreground line-clamp-3 flex-1">
           {description}

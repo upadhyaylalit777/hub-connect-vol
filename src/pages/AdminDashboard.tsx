@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Activity, FileText, Shield, LogOut, Settings } from 'lucide-react';
+import { Users, Activity, FileText, Shield, LogOut, Settings, ExternalLink } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -331,6 +332,7 @@ export default function AdminDashboard() {
         <Tabs defaultValue="users" className="space-y-4">
           <TabsList>
             <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="verifications">NGO Verifications</TabsTrigger>
             <TabsTrigger value="logs">Audit Logs</TabsTrigger>
             <TabsTrigger value="maintenance">Maintenance Mode</TabsTrigger>
             <TabsTrigger value="health">System Health</TabsTrigger>
@@ -383,6 +385,28 @@ export default function AdminDashboard() {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="verifications" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>NGO Verifications</CardTitle>
+                <CardDescription>Review and manage NGO verification requests</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    Visit the NGO Verifications page to review pending verification requests
+                  </p>
+                  <Link to="/ngo-verifications">
+                    <Button variant="default">
+                      Go to NGO Verifications
+                      <ExternalLink className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

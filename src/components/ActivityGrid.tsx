@@ -14,6 +14,7 @@ interface Activity {
   category_id: string | null;
   profiles?: {
     name: string;
+    verification_status: string | null;
   };
   categories?: {
     name: string;
@@ -24,6 +25,7 @@ interface SearchFilters {
   search?: string;
   category?: string;
   location?: string;
+  verifiedOnly?: boolean;
 }
 
 interface ActivityGridProps {
@@ -55,7 +57,7 @@ export const ActivityGrid = ({ searchFilters }: ActivityGridProps) => {
         .from('activities')
         .select(`
           *,
-          profiles!activities_author_id_fkey(name),
+          profiles!activities_author_id_fkey(name, verification_status),
           categories(name)
         `)
         .eq('status', 'PUBLISHED');
@@ -80,7 +82,16 @@ export const ActivityGrid = ({ searchFilters }: ActivityGridProps) => {
         return;
       }
 
-      setActivities(data || []);
+      // Filter for verified NGOs on client side if needed
+      let filteredData = data || [];
+      if (searchFilters?.verifiedOnly) {
+        filteredData = filteredData.filter(activity => 
+          activity.profiles?.verification_status === 'VERIFIED'
+        );
+      }
+
+      setActivities(filteredData);
+
     } catch (error) {
       console.error('Error fetching activities:', error);
     } finally {
@@ -180,6 +191,7 @@ export const ActivityGrid = ({ searchFilters }: ActivityGridProps) => {
               location={activity.location || "Location TBD"}
               ngo={activity.profiles?.name || "NGO"}
               description={activity.description || ""}
+              isVerified={activity.profiles?.verification_status === 'VERIFIED'}
             />
           ))}
         </div>

@@ -20,6 +20,7 @@ import ActivityHistory from "./pages/ActivityHistory";
 import MyReviews from "./pages/MyReviews";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
+import NGOVerifications from "./pages/NGOVerifications";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,11 @@ const App = () => (
             <Route path="/admin-dashboard" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/ngo-verifications" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <NGOVerifications />
               </ProtectedRoute>
             } />
             <Route path="/create-activity" element={

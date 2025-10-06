@@ -607,6 +607,18 @@ const UserProfile = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* NGO Verification Form Dialog */}
+      {showVerificationForm && (
+        <Dialog open={showVerificationForm} onOpenChange={setShowVerificationForm}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>NGO Verification</DialogTitle>
+            </DialogHeader>
+            <NGOVerificationForm onSuccess={() => setShowVerificationForm(false)} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

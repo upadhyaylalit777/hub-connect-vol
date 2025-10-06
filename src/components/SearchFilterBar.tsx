@@ -13,6 +13,8 @@ interface SearchFilterBarProps {
     category?: string;
     location?: string;
     verifiedOnly?: boolean;
+    dateFrom?: string;
+    dateTo?: string;
   }) => void;
 }
 
@@ -26,6 +28,8 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
 
   // Fetch categories from Supabase
@@ -53,6 +57,8 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
       category: category && category !== 'all' ? category : undefined,
       location: location.trim() || undefined,
       verifiedOnly: verifiedOnly || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
     };
     
     onFiltersChange?.(filters);
@@ -60,10 +66,10 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
 
   // Trigger search when all filters are cleared
   useEffect(() => {
-    if (!search && (!category || category === 'all') && !location && !verifiedOnly) {
+    if (!search && (!category || category === 'all') && !location && !verifiedOnly && !dateFrom && !dateTo) {
       handleSearch();
     }
-  }, [search, category, location, verifiedOnly]);
+  }, [search, category, location, verifiedOnly, dateFrom, dateTo]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -75,7 +81,7 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
     <section className="py-8 bg-background">
       <div className="container mx-auto px-4">
         <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end mb-4">
             {/* Search Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Search</label>
@@ -120,6 +126,27 @@ export const SearchFilterBar = ({ onFiltersChange }: SearchFilterBarProps) => {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   onKeyPress={handleKeyPress}
+                />
+              </div>
+            </div>
+
+            {/* Date Range Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Date Range</label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  placeholder="From"
+                  className="text-sm"
+                />
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  placeholder="To"
+                  className="text-sm"
                 />
               </div>
             </div>

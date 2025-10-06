@@ -75,9 +75,11 @@ export default function MaintenanceChecker({ children }: MaintenanceCheckerProps
   // Allow admins to bypass maintenance mode
   const isAdmin = profile?.role === 'ADMIN';
   const isAdminRoute = location.pathname.startsWith('/admin-dashboard');
+  const isAuthRoute = location.pathname === '/auth';
 
   // Show maintenance page if maintenance mode is on and user is not admin
-  if (isInMaintenance && !isAdmin && !isAdminRoute) {
+  // Always allow access to auth page so admins can log in
+  if (isInMaintenance && !isAdmin && !isAdminRoute && !isAuthRoute) {
     return (
       <MaintenancePage 
         message={maintenanceMessage} 

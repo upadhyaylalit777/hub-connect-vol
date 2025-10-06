@@ -26,6 +26,8 @@ interface SearchFilters {
   category?: string;
   location?: string;
   verifiedOnly?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 interface ActivityGridProps {
@@ -94,6 +96,29 @@ export const ActivityGrid = ({ searchFilters }: ActivityGridProps) => {
         activityDate.setHours(0, 0, 0, 0);
         return activityDate >= today;
       });
+
+      // Apply date range filter
+      if (searchFilters?.dateFrom || searchFilters?.dateTo) {
+        filteredData = filteredData.filter(activity => {
+          if (!activity.date) return false; // Exclude activities without dates when filtering by date
+          const activityDate = new Date(activity.date);
+          activityDate.setHours(0, 0, 0, 0);
+          
+          if (searchFilters.dateFrom) {
+            const fromDate = new Date(searchFilters.dateFrom);
+            fromDate.setHours(0, 0, 0, 0);
+            if (activityDate < fromDate) return false;
+          }
+          
+          if (searchFilters.dateTo) {
+            const toDate = new Date(searchFilters.dateTo);
+            toDate.setHours(0, 0, 0, 0);
+            if (activityDate > toDate) return false;
+          }
+          
+          return true;
+        });
+      }
 
       if (searchFilters?.verifiedOnly) {
         filteredData = filteredData.filter(activity => 

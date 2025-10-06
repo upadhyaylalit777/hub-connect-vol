@@ -9,7 +9,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Upload, CheckCircle2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export function NGOVerificationForm() {
+interface NGOVerificationFormProps {
+  onSuccess?: () => void;
+}
+
+export function NGOVerificationForm({ onSuccess }: NGOVerificationFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -99,6 +103,9 @@ export function NGOVerificationForm() {
       setDarpanId("");
       setRegistrationCert(null);
       setPanDoc(null);
+      
+      // Call onSuccess callback if provided
+      onSuccess?.();
     } catch (error: any) {
       console.error('Verification submission error:', error);
       toast({

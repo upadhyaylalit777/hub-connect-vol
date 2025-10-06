@@ -8,6 +8,7 @@ interface Profile {
   role: 'VOLUNTEER' | 'NGO' | 'ADMIN';
   created_at: string;
   updated_at: string;
+  verification_status?: string | null;
 }
 
 interface AuthContextType {

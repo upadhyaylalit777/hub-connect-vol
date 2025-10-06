@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { RegistrationModal } from "@/components/RegistrationModal";
 import { ReviewForm } from "@/components/ReviewForm";
-import { Calendar, Clock, MapPin, Star, Check } from "lucide-react";
+import { Calendar, Clock, MapPin, Star, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Activity {
   id: string;
@@ -50,6 +51,7 @@ export default function ActivityDetails() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userRegistration, setUserRegistration] = useState<Registration | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -182,6 +184,34 @@ export default function ActivityDetails() {
            userRegistration.completed_by_ngo;
   };
 
+  const handleCancelRegistration = async () => {
+    if (!userRegistration) return;
+    
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .delete()
+        .eq('id', userRegistration.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Registration cancelled successfully",
+      });
+      
+      setUserRegistration(null);
+      setShowCancelDialog(false);
+    } catch (error) {
+      console.error('Error cancelling registration:', error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel registration",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -293,6 +323,15 @@ export default function ActivityDetails() {
                           Write Review
                         </Button>
                       )}
+                      <Button 
+                        variant="outline" 
+                        size="lg" 
+                        className="w-full text-lg font-semibold text-destructive hover:text-destructive"
+                        onClick={() => setShowCancelDialog(true)}
+                      >
+                        <X className="w-5 h-5 mr-2" />
+                        Cancel Registration
+                      </Button>
                     </div>
                   ) : (
                     <Button 
@@ -405,6 +444,23 @@ export default function ActivityDetails() {
         activityId={activity.id}
         activityTitle={activity.title}
       />
+
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Registration</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel your registration? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, keep registration</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelRegistration}>
+              Yes, cancel registration
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { VolunteerDetailsForm } from "@/components/VolunteerDetailsForm";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +21,8 @@ export default function Auth() {
   const [error, setError] = useState("");
   const [showVolunteerDetailsForm, setShowVolunteerDetailsForm] = useState(false);
   const [newVolunteerId, setNewVolunteerId] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -279,7 +282,12 @@ export default function Auth() {
                 </div>
 
                 <div className="text-right">
-                  <Button variant="link" className="px-0 text-sm">
+                  <Button 
+                    variant="link" 
+                    className="px-0 text-sm"
+                    onClick={() => setShowForgotPassword(true)}
+                    type="button"
+                  >
                     Forgot Password?
                   </Button>
                 </div>
@@ -463,6 +471,66 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Enter your email address and we'll send you a link to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reset-email">Email</Label>
+              <Input
+                id="reset-email"
+                type="email"
+                placeholder="Enter your email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowForgotPassword(false);
+                setResetEmail("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+                    redirectTo: `${window.location.origin}/auth`,
+                  });
+                  if (error) throw error;
+                  toast({
+                    title: "Email sent!",
+                    description: "Check your email for a password reset link.",
+                  });
+                  setShowForgotPassword(false);
+                  setResetEmail("");
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: error.message,
+                    variant: "destructive",
+                  });
+                }
+              }}
+              disabled={!resetEmail}
+            >
+              Send Reset Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

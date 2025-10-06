@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Mail, Phone, Edit, Key, Trash2, CheckCircle, Users, Clock, Star, Award, AlertTriangle } from "lucide-react";
+import { Mail, Phone, Edit, Key, Trash2, CheckCircle, Users, Clock, Star, Award, AlertTriangle, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { NGOVerificationForm } from "@/components/NGOVerificationForm";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 const UserProfile = () => {
   const { user, profile, signOut } = useAuth();
@@ -34,6 +36,7 @@ const UserProfile = () => {
   const [editName, setEditName] = useState("");
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showVerificationForm, setShowVerificationForm] = useState(false);
 
   const fetchUserStats = useCallback(async () => {
     try {
@@ -358,7 +361,7 @@ const UserProfile = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     Organization Details
-                    <CheckCircle className="w-5 h-5 text-success" />
+                    {profile.verification_status === 'VERIFIED' && <VerifiedBadge />}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -370,9 +373,43 @@ const UserProfile = () => {
                     <p className="text-sm text-muted-foreground mb-1">Role</p>
                     <p className="text-sm leading-relaxed">NGO Organization</p>
                   </div>
-                  <div className="flex items-center gap-2 text-success">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm font-medium">Verified Organization</span>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Verification Status</p>
+                    {profile.verification_status === 'VERIFIED' ? (
+                      <div className="flex items-center gap-2 text-success">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm font-medium">Verified Organization</span>
+                      </div>
+                    ) : profile.verification_status === 'PENDING' ? (
+                      <div className="flex items-center gap-2 text-cta">
+                        <Clock className="w-4 h-4" />
+                        <span className="text-sm font-medium">Verification Pending</span>
+                      </div>
+                    ) : profile.verification_status === 'REJECTED' ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-destructive">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span className="text-sm font-medium">Verification Rejected</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowVerificationForm(true)}
+                        >
+                          Resubmit
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowVerificationForm(true)}
+                        className="gap-2"
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                        Get Verified
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

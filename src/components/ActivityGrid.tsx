@@ -82,8 +82,19 @@ export const ActivityGrid = ({ searchFilters }: ActivityGridProps) => {
         return;
       }
 
-      // Filter for verified NGOs on client side if needed
+      // Filter for verified NGOs and future/current activities on client side
       let filteredData = data || [];
+      
+      // Filter out past activities (only show current and future activities)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      filteredData = filteredData.filter(activity => {
+        if (!activity.date) return true; // Include activities without dates
+        const activityDate = new Date(activity.date);
+        activityDate.setHours(0, 0, 0, 0);
+        return activityDate >= today;
+      });
+
       if (searchFilters?.verifiedOnly) {
         filteredData = filteredData.filter(activity => 
           activity.profiles?.verification_status === 'VERIFIED'

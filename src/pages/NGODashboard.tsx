@@ -312,7 +312,7 @@ const NGODashboard = () => {
                   <CardHeader>
                     <CardTitle>Verification Rejected</CardTitle>
                     <CardDescription>
-                      Your verification request was rejected. Please contact support or resubmit with correct information.
+                      Your verification request was rejected. Please go to your profile to resubmit.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -325,7 +325,19 @@ const NGODashboard = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <NGOVerificationForm />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Get Verified</CardTitle>
+                    <CardDescription>
+                      Verify your NGO to gain trust from volunteers. Go to your profile to start the verification process.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Link to="/profile">
+                      <Button variant="outline">Go to Profile</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}

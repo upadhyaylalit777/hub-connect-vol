@@ -23,6 +23,9 @@ export default function Auth() {
   const [newVolunteerId, setNewVolunteerId] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -43,11 +46,23 @@ export default function Auth() {
   // Check if user is already logged in
   useEffect(() => {
     let mounted = true;
-    
+
+    const isRecovery = typeof window !== 'undefined' && window.location.hash.includes('type=recovery');
+
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session && mounted) {
+
+        if (!mounted) return;
+
+        // If coming from password recovery link, open reset dialog and do NOT redirect
+        if (isRecovery) {
+          setShowRecoveryModal(true);
+          setCheckingSession(false);
+          return;
+        }
+
+        if (session) {
           // Get user role and redirect accordingly
           const { data: profile } = await supabase
             .from('profiles')
@@ -71,9 +86,9 @@ export default function Auth() {
         }
       }
     };
-    
+
     checkSession();
-    
+
     return () => {
       mounted = false;
     };
@@ -472,6 +487,68 @@ export default function Auth() {
         </CardContent>
       </Card>
 
+      {/* Password Recovery Dialog */}
+      <Dialog open={showRecoveryModal} onOpenChange={setShowRecoveryModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Set a new password</DialogTitle>
+            <DialogDescription>
+              Enter a new password for your account.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRecoveryModal(false)}>Cancel</Button>
+            <Button
+              onClick={async () => {
+                if (!newPassword || newPassword.length < 6) {
+                  toast({ title: 'Error', description: 'Password must be at least 6 characters.', variant: 'destructive' });
+                  return;
+                }
+                if (newPassword !== confirmPassword) {
+                  toast({ title: 'Error', description: 'Passwords do not match.', variant: 'destructive' });
+                  return;
+                }
+                try {
+                  const { error } = await supabase.auth.updateUser({ password: newPassword });
+                  if (error) throw error;
+                  // Clear hash from URL so it doesn't reopen
+                  window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+                  toast({ title: 'Password updated', description: 'You can continue using the app.' });
+                  setShowRecoveryModal(false);
+                  setNewPassword('');
+                  setConfirmPassword('');
+                  navigate('/activities');
+                } catch (err: any) {
+                  toast({ title: 'Error', description: err.message, variant: 'destructive' });
+                }
+              }}
+            >
+              Update Password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Forgot Password Dialog */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
         <DialogContent className="sm:max-w-[425px]">
@@ -531,6 +608,10 @@ export default function Auth() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
     </div>
   );
 }

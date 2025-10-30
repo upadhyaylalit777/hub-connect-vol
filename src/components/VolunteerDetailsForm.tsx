@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Phone, MapPin, FileText, UserPlus, Upload, AlertCircle } from "lucide-react";
+import { Calendar, Phone, MapPin, FileText, UserPlus, Upload, AlertCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -123,14 +123,28 @@ export function VolunteerDetailsForm({ userId, onComplete }: VolunteerDetailsFor
     }
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl shadow-lg border-border/50">
         <CardHeader className="text-center space-y-3 pb-6">
-          <div className="flex items-center justify-center mb-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="w-10"></div>
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-md">
               <UserPlus className="w-8 h-8 text-primary-foreground" />
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSignOut}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
           </div>
           <CardTitle className="text-3xl font-bold">Complete Your Volunteer Profile</CardTitle>
           <p className="text-muted-foreground">

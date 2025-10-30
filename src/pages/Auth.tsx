@@ -43,7 +43,7 @@ export default function Auth() {
     role: "VOLUNTEER" as "VOLUNTEER" | "NGO",
   });
 
-  // Check if user is already logged in
+  // Check if user is already logged in and handle OAuth callbacks
   useEffect(() => {
     let mounted = true;
 
@@ -63,21 +63,48 @@ export default function Auth() {
         }
 
         if (session) {
-          // Get user role and redirect accordingly
+          // Check if profile exists
           const { data: profile } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', session.user.id)
             .single();
           
-          if (mounted) {
-            if (profile?.role === 'ADMIN') {
-              navigate('/admin-dashboard', { replace: true });
-            } else if (profile?.role === 'NGO') {
-              navigate('/ngo-dashboard', { replace: true });
-            } else {
-              navigate('/activities', { replace: true });
+          if (!mounted) return;
+
+          // If no profile exists, user signed in with Google but doesn't have an account
+          // Delete the auth user and show error
+          if (!profile) {
+            await supabase.auth.signOut();
+            setError("No account found. Please sign up first before using Google sign-in.");
+            setCheckingSession(false);
+            return;
+          }
+
+          // If profile exists but it's a VOLUNTEER, check if volunteer_details exist
+          if (profile.role === 'VOLUNTEER') {
+            const { data: volunteerDetails } = await supabase
+              .from('volunteer_details')
+              .select('id')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            if (!volunteerDetails) {
+              // Show volunteer details form
+              setNewVolunteerId(session.user.id);
+              setShowVolunteerDetailsForm(true);
+              setCheckingSession(false);
+              return;
             }
+          }
+          
+          // Redirect based on role
+          if (profile.role === 'ADMIN') {
+            navigate('/admin-dashboard', { replace: true });
+          } else if (profile.role === 'NGO') {
+            navigate('/ngo-dashboard', { replace: true });
+          } else {
+            navigate('/activities', { replace: true });
           }
         }
       } finally {
@@ -89,10 +116,64 @@ export default function Auth() {
 
     checkSession();
 
+    // Set up auth state change listener for Google OAuth callback
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        
+        if (event === 'SIGNED_IN' && session) {
+          // Check if this is a Google sign-in by checking the provider
+          const isGoogleSignIn = session.user.app_metadata.provider === 'google';
+          
+          if (isGoogleSignIn) {
+            // Check if profile exists
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (!profile) {
+              // No profile exists - user tried to sign in but hasn't signed up
+              await supabase.auth.signOut();
+              setError("No account found. Please create an account first before using Google sign-in.");
+              return;
+            }
+
+            // If profile exists but it's a VOLUNTEER, check if volunteer_details exist
+            if (profile.role === 'VOLUNTEER') {
+              const { data: volunteerDetails } = await supabase
+                .from('volunteer_details')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .single();
+              
+              if (!volunteerDetails) {
+                // Show volunteer details form
+                setNewVolunteerId(session.user.id);
+                setShowVolunteerDetailsForm(true);
+                return;
+              }
+            }
+            
+            // Redirect based on role
+            if (profile.role === 'ADMIN') {
+              navigate('/admin-dashboard', { replace: true });
+            } else if (profile.role === 'NGO') {
+              navigate('/ngo-dashboard', { replace: true });
+            } else {
+              navigate('/activities', { replace: true });
+            }
+          }
+        }
+      }
+    );
+
     return () => {
       mounted = false;
+      subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -102,11 +183,12 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/activities`,
+          redirectTo: `${window.location.origin}/auth`,
         },
       });
 
       if (error) throw error;
+      // Don't set loading to false here - let the auth state change handle it
     } catch (error: any) {
       console.error('Google login error:', error);
       setError(error.message || "Google login failed. Please try again.");

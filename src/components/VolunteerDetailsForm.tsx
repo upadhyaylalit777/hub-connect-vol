@@ -138,6 +138,7 @@ export function VolunteerDetailsForm({ userId, onComplete }: VolunteerDetailsFor
               <UserPlus className="w-8 h-8 text-primary-foreground" />
             </div>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               onClick={handleSignOut}

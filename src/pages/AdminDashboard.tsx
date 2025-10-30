@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Activity, FileText, Shield, LogOut, Settings, ExternalLink } from 'lucide-react';
+import { Users, Activity, FileText, Shield, LogOut, Settings, ExternalLink, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
@@ -105,18 +105,13 @@ export default function AdminDashboard() {
       return;
     }
 
-    const usersWithDetails = await Promise.all(
-      (profilesData || []).map(async (profile) => {
-        const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
-        return {
-          id: profile.id,
-          email: authData?.user?.email || 'N/A',
-          name: profile.name,
-          role: profile.role,
-          created_at: profile.created_at
-        };
-      })
-    );
+    const usersWithDetails = (profilesData || []).map((profile) => ({
+      id: profile.id,
+      email: (profile as any).email || 'N/A',
+      name: profile.name,
+      role: profile.role,
+      created_at: profile.created_at
+    }));
 
     setUsers(usersWithDetails);
   };
@@ -249,6 +244,34 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+
+      if (error) throw error;
+
+      await logAuditAction('USER_DELETED', userId, { userName });
+      
+      toast({
+        title: 'Success',
+        description: 'User deleted successfully'
+      });
+      
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete user',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     await logAuditAction('ADMIN_LOGOUT');
     await signOut();
@@ -371,15 +394,24 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
-                          <select
-                            className="border rounded px-2 py-1 text-sm"
-                            value={user.role}
-                            onChange={(e) => handleRoleChange(user.id, e.target.value as 'VOLUNTEER' | 'NGO' | 'ADMIN')}
-                          >
-                            <option value="VOLUNTEER">Volunteer</option>
-                            <option value="NGO">NGO</option>
-                            <option value="ADMIN">Admin</option>
-                          </select>
+                          <div className="flex items-center gap-2">
+                            <select
+                              className="border rounded px-2 py-1 text-sm"
+                              value={user.role}
+                              onChange={(e) => handleRoleChange(user.id, e.target.value as 'VOLUNTEER' | 'NGO' | 'ADMIN')}
+                            >
+                              <option value="VOLUNTEER">Volunteer</option>
+                              <option value="NGO">NGO</option>
+                              <option value="ADMIN">Admin</option>
+                            </select>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => handleDeleteUser(user.id, user.name)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

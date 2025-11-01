@@ -58,6 +58,8 @@ export function VolunteerDetailsForm({ userId, onComplete }: VolunteerDetailsFor
     setIsLoading(true);
     setError("");
 
+    console.log('Starting form submission...');
+
     // Validate consents
     if (!formData.policyConsent || !formData.backgroundCheckConsent) {
       setError("You must agree to all consent checkboxes to continue");
@@ -73,25 +75,34 @@ export function VolunteerDetailsForm({ userId, onComplete }: VolunteerDetailsFor
     }
 
     try {
+      console.log('Uploading government ID...');
       // Upload government ID to storage
       const fileExt = governmentId.name.split('.').pop();
       const fileName = `${userId}/government-id.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('government-ids')
         .upload(fileName, governmentId, {
           upsert: true,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload successful:', uploadData);
 
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('government-ids')
         .getPublicUrl(fileName);
 
+      console.log('Public URL:', urlData.publicUrl);
+
       // Insert volunteer details
-      const { error: insertError } = await supabase
+      console.log('Inserting volunteer details...');
+      const { data: insertData, error: insertError } = await supabase
         .from('volunteer_details')
         .insert({
           user_id: userId,
@@ -106,7 +117,12 @@ export function VolunteerDetailsForm({ userId, onComplete }: VolunteerDetailsFor
           background_check_consent: formData.backgroundCheckConsent,
         });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        throw insertError;
+      }
+
+      console.log('Insert successful:', insertData);
 
       toast({
         title: "Success!",
@@ -117,7 +133,13 @@ export function VolunteerDetailsForm({ userId, onComplete }: VolunteerDetailsFor
       navigate('/activities');
     } catch (error: any) {
       console.error('Error submitting volunteer details:', error);
-      setError(error.message || "Failed to submit details. Please try again.");
+      const errorMessage = error.message || "Failed to submit details. Please try again.";
+      setError(errorMessage);
+      toast({
+        title: "Submission Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
